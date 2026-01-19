@@ -1,3 +1,4 @@
+import { useState } from "react";
 import axios from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -5,6 +6,7 @@ import { motion } from "framer-motion";
 export default function Signup() {
   const nav = useNavigate();
   const split = "Hello, you!".split("");
+  const [role, setRole] = useState("student");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,11 +80,33 @@ export default function Signup() {
           <input name="email" placeholder="Email address" style={input} required />
           <input name="password" type="password" placeholder="Create strong password" style={input} required />
 
-          <select name="role" style={input} required>
-            <option value="student">Student</option>
-            <option value="faculty">Faculty</option>
-            <option value="parent">Parent</option>
-          </select>
+          <select
+  name="role"
+  style={input}
+  required
+  onChange={(e) => setRole(e.target.value)}
+>
+  <option value="student">Student</option>
+  <option value="faculty">Faculty</option>
+  <option value="parent">Parent</option>
+</select>
+{role === "student" && (
+  <input
+    name="linkedStudentId"
+    placeholder="Student ID (e.g. STU001)"
+    style={input}
+    required
+  />
+)}
+
+{role === "faculty" && (
+  <input
+    name="linkedFacultyId"
+    placeholder="Faculty ID (e.g. FAC101)"
+    style={input}
+    required
+  />
+)}
 
           <button type="submit" style={btn}>Create Account</button>
 

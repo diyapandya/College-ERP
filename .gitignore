@@ -1,0 +1,14 @@
+# Ignore all node modules anywhere
+**/node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+
+# OS / Editor junk
+.DS_Store
+.vscode/
+.idea/

@@ -17,32 +17,39 @@ const { login: saveSession } = useAuth();
   const login = async () => {
     try {
       // OTP Verification First
-      if (pendingEmail && otp) {
-        await api.post("/auth/verify-signup-otp", {
-          email: pendingEmail,
-          otp
-        });
+     if (pendingEmail) {
+  if (!otp) {
+    alert("Please enter OTP");
+    return;
+  }
 
-        alert("OTP Verified. Now login again.");
-        localStorage.removeItem("pendingEmail");
-        return;
-      }
+  await api.post("/auth/verify-signup-otp", {
+    email: pendingEmail,
+    otp
+  });
 
-      const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      saveSession({
+  localStorage.removeItem("pendingEmail");
+  alert("OTP verified. Logging you in...");
+}
+
+
+      const res = await api.post("/auth/login", { email, password })
+
+localStorage.setItem("token", res.data.token)
+
+// ✅ SAVE FULL USER PAYLOAD
+saveSession({
   id: res.data.id,
   name: res.data.name,
-  role: res.data.role
-});
-   // 👈 THIS IS THE FIX
+  role: res.data.role,
+  linkedStudentId: res.data.linkedStudentId || null
+})
 
-
-      if (res.data.role === "student") nav("/student");
-      if (res.data.role === "faculty") nav("/faculty");
-      if (res.data.role === "parent") nav("/parent");
-      if (res.data.role === "admin") nav("/admin");
+// 🚦 ROUTING AFTER LOGIN
+if (res.data.role === "student") nav("/student")
+if (res.data.role === "faculty") nav("/faculty")
+if (res.data.role === "parent") nav("/parent")
+if (res.data.role === "admin") nav("/admin")
     } catch (err) {
       alert(err.response?.data?.message || "Invalid Login");
     }

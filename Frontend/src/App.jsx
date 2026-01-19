@@ -7,7 +7,7 @@ import Signup from "./auth/Signup";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
 // Dashboards
-import StudentDashboard from "./dashboards/student/StudentDashboard";
+import StudentDashboard from "./dashboards/student/Dashboard";
 import ParentDashboard from "./dashboards/parent/ParentDashboard";
 import AdminDashboard from "./dashboards/admin/AdminDashboard";
 
@@ -28,6 +28,16 @@ import Settings from "./dashboards/faculty/Settings";
 import ParentMessages from "./dashboards/parent/Messages";
 import Seeder from "./dashboards/admin/Seeder";
 
+// Student Layout + Pages
+import StudentLayout from "./layouts/StudentLayout";
+import Timetable from "./dashboards/student/Timetable";
+import Attendance from "./dashboards/student/Attendance";
+import Assignments from "./dashboards/student/Assignments";
+import Courses from "./dashboards/student/Courses"
+import Notifications from "./dashboards/student/Notifications";
+import Results from "./dashboards/student/Results";
+import StudentSettings from "./dashboards/student/Settings"
+import StudentProfileSetup from "./dashboards/student/StudentProfileSetup";
 export default function App() {
   const { user } = useAuth();
 
@@ -38,15 +48,7 @@ export default function App() {
       <Route path="/login" element={<Login/>}/>
       <Route path="/signup" element={<Signup />} />
 
-      {/* Student */}
-      <Route
-        path="/student"
-        element={
-          <ProtectedRoute role="student">
-            <StudentDashboard />
-          </ProtectedRoute>
-        }
-      />
+     
 
       {/* Parent */}
       <Route
@@ -104,6 +106,28 @@ export default function App() {
         <Route path="reports" element={<Reports />} />
         <Route path="settings" element={<Settings />} />
       </Route>
+
+      {/* Student Layout */}
+      <Route
+        path="/student"
+        element={
+          <ProtectedRoute role="student"> 
+            <StudentLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<StudentDashboard />} />
+        <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="timetable" element={<Timetable />} />
+        <Route path="assignments" element={<Assignments />} />
+        <Route path="courses" element={<Courses />} />
+        <Route path="attendance" element={<Attendance />} />
+        <Route path="results" element={<Results />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="settings" element={<StudentSettings />} />
+        <Route path="profile-setup" element={<StudentProfileSetup />} />
+      </Route>
+
     </Routes>
   );
 }

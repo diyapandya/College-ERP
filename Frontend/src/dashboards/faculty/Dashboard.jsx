@@ -5,9 +5,26 @@ import {
   Award,
   TrendingUp,
   Calendar,
+  AlertTriangle
 } from "lucide-react";
+import { useEffect, useState } from "react"
+import api from "../../api/axios"
 
 const Dashboard = () => {
+  const [atRiskStudents, setAtRiskStudents] = useState([])
+    useEffect(() => {
+    fetchAtRiskStudents()
+  }, [])
+
+  const fetchAtRiskStudents = async () => {
+    try {
+      const res = await api.get("/faculty/at-risk")
+      setAtRiskStudents(res.data)
+    } catch (err) {
+      console.error("Failed to load at-risk students", err)
+    }
+  }
+
   const stats = [
     {
       label: "Total Students",
@@ -123,6 +140,42 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* ⚠️ Attendance Risk Alert (Faculty) */}
+{atRiskStudents.length > 0 && (
+  <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+    <div className="flex items-center gap-3 mb-4">
+      <AlertTriangle className="w-6 h-6 text-red-600" />
+      <h2 className="text-xl font-bold text-red-700">
+        Students at Attendance Risk
+      </h2>
+    </div>
+
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-gray-600 border-b">
+            <th className="py-2">Student ID</th>
+            <th>Name</th>
+            <th>Attendance %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {atRiskStudents.map((s) => (
+            <tr key={s.studentId} className="border-b">
+              <td className="py-2 font-medium">{s.studentId}</td>
+              <td>{s.name}</td>
+              <td className="text-red-600 font-semibold">
+                {s.attendancePercentage}%
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upcoming Classes */}
