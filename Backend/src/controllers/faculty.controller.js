@@ -7,42 +7,92 @@ const Academic = require("../models/academic.model")
 const MonthlySummary = require("../models/monthlySummary.model")
 const Student = require("../models/student.model")
 const Certificate = require("../models/certificate.model")
+const Mentor = require("../models/mentor.model") 
+const { syncMentorDashboard } = require("../services/mentor.service")
+
 const {
   sendMarksNotification,
   sendAttendanceRiskAlert
 } = require("../services/notification.service")
 
+
 // ================= ATTENDANCE =================
 exports.submitAttendance = async (req, res) => {
   try {
-    const { studentId, subject, totalLectures, attendedLectures } = req.body
 
-    const percentage = Math.round((attendedLectures / totalLectures) * 100)
-    const risk = percentage < 75
+    const {
+      subject,
+      date,
+      slot,
+      branch,
+      semester,
+      division,
+      batch,
+      presentStudents
+    } = req.body
 
-    // Save Attendance
-    const record = await Attendance.findOneAndUpdate(
-      { studentId, subject },
-      { totalLectures, attendedLectures, percentage, risk },
-      { upsert: true, new: true }
-    )
+    const facultyId = req.user.id
 
-    // Sync to Academic Engine
-    await Academic.findOneAndUpdate(
-      { studentId, subject },
-      { attendancePercent: percentage, riskFlag: risk },
-      { upsert: true }
-    )
-    /*  ATTENDANCE RISK ALERT */
-    if (risk) {
-      await sendAttendanceRiskAlert({
-        studentId,
+
+    /* =====================================================
+       ✅ VALIDATE FACULTY TEACHES THIS SUBJECT
+       ===================================================== */
+    const validSlot = await Timetable.findOne({
+      facultyId,
+      subject,
+      day: new Date(date).toLocaleString("en-US", { weekday: "long" }),
+      startTime: slot.start
+    })
+
+    if (!validSlot) {
+      return res.status(403).json("Not your lecture")
+    }
+
+    /* =====================================================
+       ✅ FETCH STUDENTS (DIVISION / BATCH WISE)
+       ===================================================== */
+    const students = await Student.find({
+      branch,
+      semester,
+      division,
+      ...(batch && { batch })
+    })
+
+
+    /* =====================================================
+       ✅ PREPARE ATTENDANCE RECORDS
+       ===================================================== */
+    let records = []
+
+    for (const s of students) {
+
+      const isPresent = presentStudents.includes(s.studentId)
+
+      records.push({
+        studentId: s.studentId,
         subject,
-        attendancePercent: percentage
+        date,
+        slot,
+        facultyId,
+
+        branch,
+        semester,
+        division,
+        batch,
+
+        status: isPresent ? "Present" : "Absent"
       })
     }
 
-    res.json({ message: "Attendance Updated", percentage, risk })
+
+    /* =====================================================
+       ✅ SAVE ATTENDANCE
+       ===================================================== */
+    await Attendance.insertMany(records)
+    await syncMentorDashboard(semester + division)
+
+    res.json({ message: "Attendance Saved Successfully" })
+
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -50,9 +100,10 @@ exports.submitAttendance = async (req, res) => {
 
 
 
-// At Risk Students
+// ================= AT RISK STUDENTS =================
 exports.getAtRiskStudents = async (req, res) => {
   try {
+
     const list = await Academic.find({
       $or: [
         { riskFlag: true },
@@ -65,14 +116,18 @@ exports.getAtRiskStudents = async (req, res) => {
     )
 
     res.json(list)
+
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
 
+
+
 // ================= MARKS =================
 exports.submitMarks = async (req, res) => {
   try {
+
     const {
       studentId,
       subject,
@@ -83,12 +138,40 @@ exports.submitMarks = async (req, res) => {
 
     const facultyId = req.user.id
 
+
+    /* =====================================================
+       ✅ CHECK STUDENT EXISTS
+       ===================================================== */
+    const student = await Student.findOne({ studentId })
+
+    if (!student) {
+      return res.status(404).json("Student not found")
+    }
+
+
+    /* =====================================================
+       ✅ CHECK FACULTY TEACHES THIS STUDENT
+       ===================================================== */
+    const teaches = await Timetable.findOne({
+      facultyId,
+      subject,
+      division: student.division,
+      semester: student.semester
+    })
+
+    if (!teaches) {
+      return res.status(403).json("Not your subject")
+    }
+
+
     /* ---------------- TOTAL ---------------- */
     const total = internal1 + internal2 + assignment
     const percentage = Math.round((total / 100) * 100)
 
-    /* ---------------- GRADE LOGIC (HERE ✅) ---------------- */
+
+    /* ---------------- GRADE LOGIC ---------------- */
     let grade
+
     if (percentage >= 90) grade = "A+"
     else if (percentage >= 80) grade = "A"
     else if (percentage >= 70) grade = "B+"
@@ -97,9 +180,11 @@ exports.submitMarks = async (req, res) => {
     else if (percentage >= 40) grade = "D"
     else grade = "F"
 
+
     /* ---------------- ELIGIBILITY & RISK ---------------- */
     const eligibility = percentage >= 40 ? "Eligible" : "Not Eligible"
     const risk = percentage < 40
+
 
     /* ---------------- ACADEMIC HEALTH ---------------- */
     const health =
@@ -107,7 +192,8 @@ exports.submitMarks = async (req, res) => {
       percentage >= 60 ? 70 :
       percentage >= 40 ? 50 : 25
 
-    /* ---------------- SAVE MARKS (PER EXAM TYPE) ---------------- */
+
+    /* ---------------- SAVE MARKS ---------------- */
     const marksData = [
       {
         studentId,
@@ -135,13 +221,16 @@ exports.submitMarks = async (req, res) => {
       }
     ]
 
+
     for (const mark of marksData) {
+
       await Marks.findOneAndUpdate(
         { studentId, subject, examType: mark.examType },
         mark,
         { upsert: true, new: true }
       )
     }
+
 
     /* ---------------- SAVE TO ACADEMIC ENGINE ---------------- */
     await Academic.findOneAndUpdate(
@@ -151,10 +240,11 @@ exports.submitMarks = async (req, res) => {
         academicHealth: health,
         eligibilityStatus: eligibility,
         riskFlag: risk,
-        grade        // ✅ STORE GRADE HERE
+        grade
       },
       { upsert: true, new: true }
     )
+
 
     /* ---------------- NOTIFICATION ---------------- */
     await sendMarksNotification({
@@ -165,6 +255,7 @@ exports.submitMarks = async (req, res) => {
       eligibility
     })
 
+
     res.json({
       message: "Marks Updated Successfully",
       total,
@@ -174,14 +265,18 @@ exports.submitMarks = async (req, res) => {
       risk
     })
 
+
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
 
+
+
 // ================= TIMETABLE =================
 exports.addTimetable = async (req, res) => {
   try {
+
     const normalize = (item) => ({
       subject: item.subject,
       day: item.day,
@@ -197,31 +292,44 @@ exports.addTimetable = async (req, res) => {
       facultyId: req.user.id
     })
 
+
     const data = Array.isArray(req.body)
       ? req.body.map(normalize)
-      : [normalize(req.body)]   // 👈 ALWAYS ARRAY
+      : [normalize(req.body)]
+
 
     const timetable = await Timetable.insertMany(data)
+
 
     res.status(201).json({
       message: "Timetable added successfully",
       timetable
     })
+
+
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
+
+
+
 // ================= GET MY TIMETABLE =================
 exports.getFacultyTimetable = async (req, res) => {
+
   const timetable = await Timetable.find({
     facultyId: req.user.id
   })
 
   res.json(timetable)
 }
+
+
+
 // ================= ASSIGNMENT =================
 exports.addAssignment = async (req, res) => {
   try {
+
     const {
       title,
       subject,
@@ -232,29 +340,35 @@ exports.addAssignment = async (req, res) => {
       division
     } = req.body
 
-    // Faculty creates assignment for TARGET students
+
     const assignment = await Assignment.create({
       title,
       subject,
       description,
       dueDate,
       branch,
-      semester : Number(semester),
+      semester: Number(semester),
       division,
       facultyId: req.user.id
     })
+
 
     res.status(201).json({
       message: "Assignment created successfully",
       assignment
     })
+
+
   } catch (err) {
     res.status(500).json(err.message)
   }
 }
 
+
+
 // ================= RESULT =================
 exports.addResult = async (req, res) => {
+
   const result = await Result.create({
     ...req.body,
     semester: Number(req.body.semester),
@@ -264,11 +378,21 @@ exports.addResult = async (req, res) => {
   res.status(201).json(result)
 }
 
+
+
+// ================= MONTHLY SUMMARY =================
 exports.getMonthlySummaries = async (req, res) => {
+
   const list = await MonthlySummary.find().sort({ month: -1 })
+
   res.json(list)
 }
+
+
+
+// ================= STUDENTS BY DIVISION =================
 exports.getStudentsByDivision = async (req, res) => {
+
   const { branch, semester, division } = req.query
 
   const students = await Student.find({
@@ -279,7 +403,12 @@ exports.getStudentsByDivision = async (req, res) => {
 
   res.json(students)
 }
+
+
+
+// ================= STUDENT VAULT =================
 exports.getStudentVault = async (req, res) => {
+
   const { studentId } = req.params
 
   const profile = await Student.findOne({ studentId })
@@ -293,4 +422,68 @@ exports.getStudentVault = async (req, res) => {
     certificates,
     summaries
   })
+}
+
+
+
+// =====================================================
+// ✅ SUBSTITUTE FACULTY SYSTEM
+// =====================================================
+exports.assignSubstitute = async (req, res) => {
+
+  const { timetableId, newFacultyId, remarks } = req.body
+
+  await Timetable.findByIdAndUpdate(timetableId, {
+    substituteFaculty: newFacultyId,
+    remarks,
+    isSubstituted: true
+  })
+
+  res.json("Substitute Assigned Successfully")
+}
+
+
+
+// =====================================================
+// ✅ FACULTY DASHBOARD APIs
+// =====================================================
+
+// ----------- MY CLASSES -----------
+exports.getMyClasses = async (req, res) => {
+
+  const list = await Timetable.find({
+    facultyId: req.user.id
+  })
+
+  res.json(list)
+}
+
+
+// ----------- MY STUDENTS -----------
+exports.getMyStudents = async (req, res) => {
+
+  const data = await Student.find({
+    branch: req.query.branch,
+    semester: req.query.semester,
+    division: req.query.division
+  })
+
+  res.json(data)
+}
+
+
+// ----------- MY MENTEES (MENTOR STUDENTS) -----------
+exports.getMyMentees = async (req, res) => {
+
+  const mentor = await Mentor.findOne({
+    mentors: req.user.id
+  })
+
+  if (!mentor) return res.json([])
+
+  const students = await Student.find({
+    division: mentor.division
+  })
+
+  res.json(students)
 }

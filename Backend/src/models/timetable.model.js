@@ -12,6 +12,28 @@ const timetableSchema = new mongoose.Schema({
   day: String,
   startTime: String,
   endTime: String,
-  room: String
+  room: String,
+  /* =====================================================
+     ✅ SUBSTITUTE FACULTY SYSTEM
+     ===================================================== */
+
+  substituteFaculty: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+
+  // Remarks while assigning substitute
+  remarks: String,
+
+  // Is this lecture substituted?
+  isSubstituted: {
+    type: Boolean,
+    default: false
+  }
+
+},
+{
+  timestamps: true // ✅ Helpful for tracking changes
 })
+
 module.exports = mongoose.model("Timetable", timetableSchema);

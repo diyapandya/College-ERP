@@ -16,7 +16,10 @@ const {
   getMyAssignments,
   getMyResults,
   getMyMonthlySummary,
-  getMyEligibility
+  getMyEligibility,
+  getMyDashboard,
+  getMySubjects,
+  getMyAttendanceSummary
 } = require("../controllers/student.controller")
 
 
@@ -40,5 +43,7 @@ router.get("/assignments", auth, role("student"), getMyAssignments)
 router.get("/results", auth, role("student"), getMyResults)
 router.get("/eligibility", auth, role("student"), getMyEligibility)
 router.get("/monthly-summary", auth, role("student"), getMyMonthlySummary)
-
+router.get("/dashboard", auth, role("student"), getMyDashboard)
+router.get("/subjects", auth, role("student"), getMySubjects)
+router.get("/attendance-summary", auth, role("student"), getMyAttendanceSummary)
 module.exports = router

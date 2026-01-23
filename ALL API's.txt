@@ -1,0 +1,21 @@
+ALL API's
+FOR FACULTY
+
+| Feature         | Method | API                        |
+| --------------- | ------ | -------------------------- |
+| Register        | POST   | /auth/register             |
+| OTP Verify      | POST   | /auth/verify-signup-otp    |
+| Login           | POST   | /auth/login                |
+| Add Timetable   | POST   | /faculty/timetable         |
+| View Timetable  | GET    | /faculty/timetable         |
+| Attendance      | POST   | /faculty/attendance        |
+| Submit Marks    | POST   | /faculty/marks             |
+| Add Assignment  | POST   | /faculty/assignment        |
+| Substitute      | POST   | /faculty/substitute        |
+| My Classes      | GET    | /faculty/my-classes        |
+| My Students     | GET    | /faculty/my-students       |
+| My Mentees      | GET    | /faculty/my-mentees        |
+| Risk Students   | GET    | /faculty/at-risk           |
+| Student Vault   | GET    | /faculty/student-vault/:id |
+| Result          | POST   | /faculty/result            |
+| Monthly Summary | GET    | /faculty/monthly-summaries |

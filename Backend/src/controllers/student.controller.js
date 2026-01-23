@@ -37,7 +37,7 @@ exports.getMyMarks = async(req,res)=>{
 
 exports.saveProfile = async (req, res) => {
   try {
-    const studentId = req.user.studentId
+    const studentId = req.user.linkedStudentId
 
     // 🔁 CREATE OR UPDATE PROFILE (SINGLE SOURCE OF TRUTH)
     const student = await Student.findOneAndUpdate(
@@ -91,16 +91,16 @@ exports.getCertificates = async(req,res)=>{
   res.json(await Certificate.find({studentId:req.user.linkedStudentId}))
 }
 exports.getMyTimetable = async (req, res) => {
-  console.log("STUDENT USER:", req.user)  
 
   const timetable = await Timetable.find({
     branch: req.user.branch,
     semester: req.user.semester,
     division: req.user.division
-  })
+  }).sort({ day: 1, startTime: 1 })
 
   res.json(timetable)
 }
+
 // Student assignments
 exports.getMyAssignments = async (req, res) => {
   try {
@@ -162,4 +162,60 @@ exports.getMyNotifications = async (req, res) => {
   }).sort({ createdAt: -1 })
 
   res.json(notifications)
+}
+// ================= STUDENT DASHBOARD =================
+exports.getMyDashboard = async (req, res) => {
+
+  try {
+
+    const studentId = req.user.linkedStudentId
+
+    const attendance = await Attendance.find({ studentId })
+    const marks = await Marks.find({ studentId })
+    const academics = await Academic.find({ studentId })
+
+    const avgAttendance =
+      attendance.reduce((s, a) => s + (a.status === "Present"), 0) /
+      (attendance.length || 1) * 100
+
+    const avgMarks =
+      marks.reduce((s, m) => s + m.marks, 0) /
+      (marks.length || 1)
+
+    res.json({
+      attendance,
+      marks,
+      academics,
+      avgAttendance: Math.round(avgAttendance),
+      avgMarks: Math.round(avgMarks)
+    })
+
+  } catch (err) {
+    res.status(500).json(err.message)
+  }
+}
+// ================= MY SUBJECTS =================
+exports.getMySubjects = async (req, res) => {
+
+  const list = await Timetable.find({
+    branch: req.user.branch,
+    semester: req.user.semester,
+    division: req.user.division
+  }).select("subject facultyId")
+
+  res.json(list)
+}
+// ================= ATTENDANCE SUMMARY =================
+exports.getMyAttendanceSummary = async (req, res) => {
+
+  const studentId = req.user.linkedStudentId
+
+  const data = await Attendance.find({ studentId })
+
+  let total = data.length
+  let present = data.filter(a => a.status === "Present").length
+
+  let percent = total ? Math.round((present / total) * 100) : 0
+
+  res.json({ total, present, percent })
 }
