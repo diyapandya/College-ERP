@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import aiImage from "../assets/login.png"; 
 
 export default function Signup() {
   const nav = useNavigate();
@@ -25,6 +26,14 @@ export default function Signup() {
     }
   };
 
+  <style>{`
+  @keyframes float {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-18px); }
+    100% { transform: translateY(0px); }
+  }
+`}</style>
+
   return (
     <div style={{
       minHeight: "100vh",
@@ -46,13 +55,42 @@ export default function Signup() {
       }}>
 
         {/* LEFT WELCOME */}
+        {/* Glow Background */}
+<div
+  style={{
+    position: "absolute",
+    width: 280,
+    height: 280,
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.15)",
+    top: 40,
+    left: 40,
+    filter: "blur(60px)"
+  }}
+/>
+
+<div
+  style={{
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.12)",
+    bottom: 60,
+    right: 60,
+    filter: "blur(50px)"
+  }}
+/>
         <div style={{
           background: "linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
           color: "#fff",
           padding: 70,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center"
+          justifyContent: "center",
+           alignItems: "center",       
+    textAlign: "center",
+    position: "relative"
         }}>
           <motion.h1 style={{ fontSize: 46, marginBottom: 12, display: "flex", gap: 4 }}>
             {split.map((c, i) => (
@@ -69,6 +107,30 @@ export default function Signup() {
           <p style={{ opacity: 0.9 }}>
             Create your ERP account and get started.
           </p>
+
+          {/* FLOATING IMAGE */}
+          <motion.img
+            src={aiImage}
+            alt="AI Education"
+            style={{
+              width: 360,
+              marginTop: 40,
+              animation: "float 4s ease-in-out infinite",
+              filter: "drop-shadow(0 30px 45px rgba(91,46,255,.35))"
+            }}
+            animate={{
+                y: [0, -18, 0],
+                rotate: [0, 1.5, 0],
+                scale: [1, 1.02, 1]
+              }}
+              transition={{
+                duration: 4,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "loop"
+              }}
+            />
+          
         </div>
 
         {/* FORM */}

@@ -1,3 +1,4 @@
+
 const btn={
 padding:"8px 16px",borderRadius:20,border:"1px solid #ddd",marginLeft:8,background:"#fff"
 }
@@ -41,17 +42,83 @@ const ruleCard = {
 };
 
 
+/* ================= TILT CARD ================= */
+
+const spring = {
+  damping: 25,
+  stiffness: 120,
+  mass: 1.5
+};
+
+function TiltCard({ title, desc }) {
+  const ref = useRef(null);
+
+  const rotateX = useSpring(0, spring);
+  const rotateY = useSpring(0, spring);
+  const scale = useSpring(1, spring);
+
+  function handleMove(e) {
+    const rect = ref.current.getBoundingClientRect();
+
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    rotateX.set((-y / rect.height) * 18);
+    rotateY.set((x / rect.width) * 18);
+  }
+
+  function handleEnter() {
+    scale.set(1.05);
+  }
+
+  function handleLeave() {
+    rotateX.set(0);
+    rotateY.set(0);
+    scale.set(1);
+  }
+
+  return (
+    <figure
+      ref={ref}
+      style={{ perspective: 900 }}
+      onMouseMove={handleMove}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      <motion.div
+        style={{
+          rotateX,
+          rotateY,
+          scale,
+          background:"#FFFFFF",
+          borderRadius: 22,
+          padding: 28,
+          minHeight: 180,
+          border: "3px solid rgba(255,255,255,.6)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 18px 40px rgba(15,23,42,.12)"
+        }}
+      >
+        <h3 style={{ marginBottom: 12 }}>{title}</h3>
+        <p style={{ color: "#475569" }}>{desc}</p>
+      </motion.div>
+    </figure>
+  );
+}
+
 
 import { useNavigate } from "react-router-dom";
 import { Typewriter } from "react-simple-typewriter";
-
-
+import React, { useRef, useState } from "react";
+import { motion, useSpring } from "motion/react";
 import logo from "../assets/collegeerp.png";
 import video from "../assets/hero.mp4";
 import ksv from "../assets/ksv.svg";
 import svkm from "../assets/svkm.svg";
 
-import React from "react";
+
+
+/* ================= NAV ITEM ================= */
 
 function NavItem({ text,target }) {
   const [hover, setHover] = React.useState(false);
@@ -87,12 +154,19 @@ function NavItem({ text,target }) {
     </a>
   );
 }
-
+/* ================= MAIN COMPONENT ================= */
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <>
+    <div
+    style={{
+       minHeight: "100vh",
+         background:
+        "linear-gradient(135deg, rgba(91,46,255,.08), rgba(203,60,255,.08), rgba(255,138,61,.08))"
+    }}
+    >
+    {/* ================= NAVBAR ================= */}
     <div
       style={{
         position: "fixed",
@@ -291,11 +365,11 @@ export default function Landing() {
     {/* ================= FEATURES ================= */}
 <section id="features"
   style={{
-    maxWidth: 1100,
-    margin: "140px auto",
-    padding: "60px 32px",
-    background: "#F8FAFC",           // Soft section background
-    borderRadius: 28
+    maxWidth: 1200,
+    margin: "50PX auto",
+    padding: "80px",
+    
+
   }}
 >
   <h2
@@ -329,44 +403,13 @@ export default function Landing() {
       ["Monthly Academic Summary","Automatically generates and delivers monthly academic progress summaries to parents and mentors."],
       ["Student Profile & Academic Record Vault","Maintains a centralized digital academic record and mentoring file for each student."]
     ].map(([title, desc]) => (
-      <div
-        key={title}
-        style={{
-          background: "#F1F5F9",            // Light card background
-          borderRadius: 18,
-          padding: "26px 28px",
-          minHeight: 170,
-          border: "1px solid #E2E8F0",
-          transition: "0.35s ease",
-          boxShadow: "0 10px 25px rgba(15,23,42,.04)"
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = "translateY(-8px)";
-          e.currentTarget.style.boxShadow = "0 20px 40px rgba(15,23,42,.12)";
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 10px 25px rgba(15,23,42,.04)";
-        }}
-      >
-        <h3
-          style={{
-            marginBottom: 12,
-            color: "#0F172A",
-            fontSize: 17,
-            fontWeight: 600,
-            letterSpacing: "-0.3px"
-          }}
-        >
-          {title}
-        </h3>
-
-        <p style={{ color: "#475569", lineHeight: 1.65, fontSize: 14 }}>
-          {desc}
-        </p>
-      </div>
+      <TiltCard
+    key={title}
+    title={title}
+    desc={desc}
+  />
     ))}
-  </div>
+    </div>
 
   {/* RESPONSIVE FIX */}
   <style>{`
@@ -382,10 +425,9 @@ export default function Landing() {
 {/* ================= USER ROLES ================= */}
 <section id="user roles"
   style={{
-    maxWidth: 1100,
-    margin: "140px auto",
-    padding: "80px 40px",
-    background: "#F8FAFC",
+    maxWidth: 1200,
+    margin: " 50PX auto",
+    padding: "80px",
     borderRadius: 28,
   }}
 >
@@ -469,32 +511,35 @@ export default function Landing() {
 
    {/* ================= HOW IT WORKS ================= */}
 {/* ================= HOW IT WORKS ================= */}
-<section id="rules" style={{background:"#F8FAFF", padding:"140px 0"}}>
-  <h2 style={{
-    textAlign:"center",
-    fontSize:38,
-    fontWeight:700,
-    marginBottom:120,
-    background:"linear-gradient(90deg,#5B2EFF,#CB3CFF,#FF8A3D)",
-    WebkitBackgroundClip:"text",
-    WebkitTextFillColor:"transparent"
-  }}>
+<section
+  id="rules"
+  style={{
+    maxWidth: 1200,
+    margin: "80px auto",
+    padding: "100px 60px",
+    position: "relative"
+  }}
+>
+  {/* TITLE */}
+  <motion.h2
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6 }}
+    viewport={{ once: true }}
+    style={{
+      textAlign: "center",
+      fontSize: 36,
+      marginBottom: 90,
+      color: "#0F172A",
+      fontWeight: 700
+    }}
+  >
     How the College ERP Works
-  </h2>
+  </motion.h2>
 
-  <div style={{maxWidth:1100, margin:"auto", position:"relative"}}>
+  <div style={{ position: "relative" }}>
 
-    {/* CENTER LINE */}
-    <div style={{
-      position:"absolute",
-      left:"50%",
-      top:0,
-      bottom:0,
-      width:6,
-      transform:"translateX(-50%)",
-      background:"linear-gradient(#5B2EFF,#CB3CFF,#FF8A3D)",
-      borderRadius:6
-    }}/>
+    
 
     {[
       ["Faculty Inputs Data","Faculty enter attendance, marks and assessments into the ERP system."],
@@ -503,40 +548,98 @@ export default function Landing() {
       ["Notifications Sent","Students and parents receive instant alerts & summaries."],
       ["Mentor Monitoring","Mentors monitor health scores, recovery actions and risk lists."],
       ["Continuous Improvement","ERP continuously improves academic compliance & outcomes."]
-    ].map(([title,desc],i)=>(
-      <div key={i} style={{
-        display:"flex",
-        justifyContent: i%2===0 ? "flex-end":"flex-start",
-        alignItems:"center",
-        marginBottom:120
-      }}>
+    ].map(([title, desc], i) => (
 
-        <div style={{width:"45%", display:"flex", alignItems:"center", gap:24}}>
-          <div style={{
-            width:56,
-            height:56,
-            borderRadius:"50%",
-            background:"linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
-            color:"#fff",
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center",
-            fontWeight:700,
-            fontSize:18,
-            boxShadow:"0 15px 40px rgba(91,46,255,.35)"
-          }}>
-            {String(i+1).padStart(2,"0")}
+      <motion.div
+        key={i}
+
+        /* ANIMATION */
+        initial={{
+          opacity: 0,
+          x: i % 2 === 0 ? 80 : -80,
+          scale: 0.9
+        }}
+        whileInView={{
+          opacity: 1,
+          x: 0,
+          scale: 1
+        }}
+        transition={{
+          duration: 0.7,
+          delay: i * 0.1
+        }}
+        viewport={{ once: true }}
+
+        style={{
+          display: "flex",
+          justifyContent: i % 2 === 0 ? "flex-end" : "flex-start",
+          marginBottom: 50
+        }}
+      >
+        {/* CARD */}
+        <div
+          style={{
+            width: "45%",
+            background: "#fff",
+            borderRadius: 20,
+            padding: "26px 28px",
+            display: "flex",
+            gap: 22,
+            alignItems: "flex-start",
+            boxShadow: "0 18px 45px rgba(15,23,42,.12)",
+            border: "1px solid rgba(255,255,255,.6)"
+          }}
+        >
+          {/* NUMBER */}
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              fontSize: 17,
+              flexShrink: 0,
+              boxShadow: "0 10px 25px rgba(91,46,255,.4)"
+            }}
+          >
+            {String(i + 1).padStart(2, "0")}
           </div>
 
+          {/* TEXT */}
           <div>
-            <h3 style={{marginBottom:8,color:"#0F172A"}}>{title}</h3>
-            <p style={{color:"#64748B",lineHeight:1.6}}>{desc}</p>
+            <h3
+              style={{
+                marginBottom: 8,
+                color: "#0F172A",
+                fontSize: 17,
+                fontWeight: 600
+              }}
+            >
+              {title}
+            </h3>
+
+            <p
+              style={{
+                color: "#64748B",
+                fontSize: 14,
+                lineHeight: 1.6
+              }}
+            >
+              {desc}
+            </p>
           </div>
         </div>
-      </div>
+
+      </motion.div>
     ))}
   </div>
 </section>
+
 
 
 
@@ -546,8 +649,8 @@ export default function Landing() {
     maxWidth: 1100,
     margin: "140px auto",
     padding: "80px 40px",
-    background: "#FFFFFF",
     borderRadius: 28,
+    background: "#FFFFFF",
     boxShadow: "0 20px 60px rgba(15,23,42,.05)",
   }}
 >
@@ -632,7 +735,7 @@ export default function Landing() {
     {/* BRAND */}
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <img src={logo} height="62" />
+        <img src={logo} height="62" width="62"/>
         <span style={{ fontSize: 22 }}>
           <b style={{ color: "#5B2EFF" }}>College</b>
           <span style={{ color: "#fff" }}>ERP</span>
@@ -692,6 +795,6 @@ export default function Landing() {
   </div>
 </footer>
 
-    </>
+    </div>
   );
 }
