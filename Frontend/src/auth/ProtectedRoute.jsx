@@ -10,13 +10,6 @@ export default function ProtectedRoute({children,role}){
 
  }
 
-if (
-    user.role === "student" &&
-    !user.linkedStudentId &&
-    location.pathname !== "/student/profile-setup"
-  ) {
-    return <Navigate to="/student/profile-setup" />
-  }
 
   return children
 }

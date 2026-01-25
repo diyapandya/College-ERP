@@ -1,163 +1,270 @@
-import { useState } from "react"
-import axios from "axios"
-import {useAuth} from "../../context/AuthContext"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
+/* =====================================================
+   STUDENT PROFILE SETUP (FINAL VERSION)
+===================================================== */
 
 const StudentProfileSetup = () => {
+  const { refreshUser } = useAuth();
+const navigate = useNavigate();
 
-  const { refreshUser } = useAuth()
+  /* ---------------- FORM STATE (ORDERED) ---------------- */
   const [form, setForm] = useState({
     name: "",
+    enrollment: "",
     branch: "",
     semester: "",
     division: "",
-    enrollment: "",
-    abcId: "",
-    aadhaarMasked: "",
-    bloodGroup: "",
     phone: "",
     email: "",
+    aadhaarMasked: "",
+    bloodGroup: "",
     address: "",
     parentName: "",
     parentPhone: "",
-    parentEmail: ""
-  })
+    parentEmail: "",
+    abcId: ""
+  });
 
-  const [profile, setProfile] = useState(null)
-  const [saved, setSaved] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
+  const [saved, setSaved] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+  /* ---------------- AUTO LOAD PROFILE ---------------- */
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
-  const handleSubmit = async e => {
-    e.preventDefault()
+  const loadProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:5000/api/student/profile",
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (res.data) {
+        setForm(res.data);
+        setSaved(true);
+      }
+    } catch {
+      console.log("No saved profile");
+    }
+  };
+
+  /* ---------------- INPUT HANDLER ---------------- */
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  /* ---------------- VALIDATION ---------------- */
+  const validate = () => {
+    /*
+    for (let key in form) {
+      if (!form[key]) {
+        toast.error("All fields are mandatory");
+        return false;
+      }
+    }
+      */
+
+    if (!/^\d{10}$/.test(form.phone)) {
+      toast.error("Phone must be 10 digits");
+      return false;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      toast.error("Invalid email format");
+      return false;
+    }
+
+    if (!/^\d+$/.test(form.semester)) {
+      toast.error("Semester must be a number");
+      return false;
+    }
+
+    if (!/^\d{4}-\d{4}$/.test(form.aadhaarMasked)) {
+      toast.error("Aadhaar format: 1234-5678");
+      return false;
+    }
+
+    return true;
+  };
+
+  /* ---------------- SUBMIT ---------------- */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validate()) return;
 
     try {
-      const token = localStorage.getItem("token")
-      if (!token) return alert("Login required")
+      const token = localStorage.getItem("token");
 
-      const res = await axios.post(
+      await axios.post(
         "http://localhost:5000/api/student/profile",
         form,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
-      )
+      );
 
-      setProfile(res.data)
-      setSaved(true)
-      setIsEditing(false)
-      await refreshUser()
-    } catch (err) {
-      alert(err.response?.data || "Profile save failed")
+      toast.success("Profile saved successfully");
+
+      setSaved(true);
+      setIsEditing(false);
+
+      await refreshUser();
+      navigate("/student");
+    } catch {
+      toast.error("Profile save failed");
     }
-  }
+  };
 
-
-
+  /* ---------------- EDIT MODE ---------------- */
   const handleEdit = () => {
-    setForm(profile)       // ✅ auto-fill form
-    setIsEditing(true)
-    setSaved(false)
-  }
+    setIsEditing(true);
+    setSaved(false);
+  };
 
-  /* ================= PROFILE VIEW ================= */
-  if (saved && profile && !isEditing) {
-    return (
-      <div style={styles.container}>
-        <h2>My Profile</h2>
+  /* ---------------- LABEL FORMATTER ---------------- */
+  const formatLabel = (key) => {
+    return key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (c) => c.toUpperCase());
+  };
 
-        <div style={styles.card}>
-          <p><b>Name:</b> {profile.name}</p>
-          <p><b>Branch:</b> {profile.branch}</p>
-          <p><b>Semester:</b> {profile.semester}</p>
-          <p><b>Division:</b> {profile.division}</p>
-          <p><b>Enrollment:</b> {profile.enrollment}</p>
-          <p><b>ABC ID:</b> {profile.abcId}</p>
-          <p><b>Aadhaar:</b> {profile.aadhaarMasked}</p>
-          <p><b>Blood Group:</b> {profile.bloodGroup}</p>
-          <p><b>Phone:</b> {profile.phone}</p>
-          <p><b>Email:</b> {profile.email}</p>
-          <p><b>Address:</b> {profile.address}</p>
+  /* ================= UI ================= */
 
-          <hr />
-
-          <p><b>Parent Name:</b> {profile.parentName}</p>
-          <p><b>Parent Phone:</b> {profile.parentPhone}</p>
-          <p><b>Parent Email:</b> {profile.parentEmail}</p>
-
-          <button onClick={handleEdit} style={styles.editBtn}>
-            Edit Profile
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  /* ================= PROFILE FORM ================= */
   return (
-    <div style={styles.container}>
-      <h2>{isEditing ? "Edit Profile" : "Student Profile Setup"}</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-4xl mx-auto bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl p-8"
+    >
+      <h2 className="text-3xl font-bold text-center mb-8">
+        Student Profile Setup
+      </h2>
 
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Full Name" required />
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-5"
+      >
 
-        <input name="branch" value={form.branch} onChange={handleChange} placeholder="Branch" required />
-        <input
-          name="semester"
-          type="number"
-          value={form.semester}
-          onChange={handleChange}
-          placeholder="Semester"
-          required
-        />
-        <input name="division" value={form.division} onChange={handleChange} placeholder="Division" required />
+        {/* ================= FORM FIELDS ================= */}
+        {Object.keys(form).map((key) => {
 
-        <input name="enrollment" value={form.enrollment} onChange={handleChange} placeholder="Enrollment No" />
-        <input name="abcId" value={form.abcId} onChange={handleChange} placeholder="ABC ID" />
-        <input name="aadhaarMasked" value={form.aadhaarMasked} onChange={handleChange} placeholder="Aadhaar (XXXX-XXXX)" />
-        <input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="Blood Group" />
+          const lockedFields = [
+          ];
 
-        <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" />
-        <input name="email" value={form.email} onChange={handleChange} placeholder="Email" />
-        <textarea name="address" value={form.address} onChange={handleChange} placeholder="Address" />
+          const locked =
+            saved && !isEditing && lockedFields.includes(key);
 
-        <input name="parentName" value={form.parentName} onChange={handleChange} placeholder="Parent Name" />
-        <input name="parentPhone" value={form.parentPhone} onChange={handleChange} placeholder="Parent Phone" />
-        <input name="parentEmail" value={form.parentEmail} onChange={handleChange} placeholder="Parent Email" />
+          return key !== "address" ? (
 
-        <button type="submit">
-          {isEditing ? "Update Profile" : "Save Profile"}
-        </button>
+            <div key={key} className="flex flex-col gap-1">
+
+              {/* Label */}
+              <label className="text-sm font-semibold text-gray-700">
+                {formatLabel(key)}
+              </label>
+
+              {/* Input */}
+              <input
+                name={key}
+                value={form[key]}
+                onChange={handleChange}
+                disabled={locked}
+                className={`border rounded-lg px-4 py-2 outline-none
+                  focus:ring-2 focus:ring-indigo-400
+                  ${locked ? "bg-gray-100 cursor-not-allowed" : ""}
+                `}
+              />
+
+            </div>
+
+          ) : (
+
+            <div key={key} className="flex flex-col gap-1 md:col-span-2">
+
+              <label className="text-sm font-semibold text-gray-700">
+                Address
+              </label>
+
+              <textarea
+                name={key}
+                value={form[key]}
+                onChange={handleChange}
+                rows="3"
+                className="border rounded-lg px-4 py-2 outline-none
+                           focus:ring-2 focus:ring-indigo-400"
+              />
+
+            </div>
+
+          );
+        })}
+
+        {/* ================= BUTTONS ================= */}
+        <div className="col-span-2 flex justify-between mt-6">
+
+          {/* EDIT */}
+          <button
+            type="button"
+            onClick={handleEdit}
+            disabled={!saved}
+            style={btnStyle("#5B2EFF")}
+          >
+            Edit
+          </button>
+
+          {/* SAVE */}
+          <button
+            type="submit"
+            style={btnStyle("#FF8A3D")}
+          >
+            Save Profile
+          </button>
+
+        </div>
+
       </form>
-    </div>
-  )
-}
 
-const styles = {
-  container: {
-    maxWidth: "700px",
-    margin: "40px auto"
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  },
-  card: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "6px",
-    border: "1px solid #ddd",
-    lineHeight: "1.8"
-  },
-  editBtn: {
-    marginTop: "20px",
-    padding: "8px 14px",
-    cursor: "pointer"
-  }
-}
+      {!saved && (
+        <p className="text-center text-red-500 mt-4 text-sm">
+          ⚠ Please save your profile to access dashboard
+        </p>
+      )}
 
-export default StudentProfileSetup
+    </motion.div>
+  );
+};
+
+/* ---------------- BUTTON STYLE ---------------- */
+
+const btnStyle = (color) => ({
+  padding: "10px 28px",
+  borderRadius: "22px",
+  background: "#FFFFFF",
+  color: color,
+  border: "2px solid transparent",
+  fontSize: "16px",
+  cursor: "pointer",
+  backgroundImage: `
+    linear-gradient(#fff,#fff),
+    linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)
+  `,
+  backgroundOrigin: "border-box",
+  backgroundClip: "padding-box, border-box",
+  boxShadow: "0 0 10px rgba(203,60,255,0.4)",
+  transition: "0.3s"
+});
+
+export default StudentProfileSetup;

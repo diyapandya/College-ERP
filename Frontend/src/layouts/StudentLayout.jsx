@@ -1,24 +1,49 @@
-import { Outlet } from "react-router-dom";
-import Sidebar from "../components/studentdashboard/Sidebar";
-import Header from "../components/studentdashboard/Header";
-import { useState } from "react";
+import { Outlet } from "react-router-dom"
+import { useState } from "react"
+
+import Sidebar from "../components/studentdashboard/Sidebar"
+import Header from "../components/studentdashboard/Header"
 
 const StudentLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-indigo-50">
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header setSidebarOpen={setSidebarOpen} />
+      {/* Sidebar */}
+      <Sidebar
+        expanded={expanded}
+        setExpanded={setExpanded}
+      />
 
-        <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+      {/* Main Wrapper */}
+      <div
+        className="flex flex-col h-full transition-all duration-300"
+        style={{
+          marginLeft: expanded ? "210px" : "70px"
+        }}
+      >
+
+        {/* Header */}
+        <Header expanded={expanded} />
+
+        {/* Main Content */}
+        <main className="flex-1  overflow-y-auto pt-16"
+        style={{
+            marginTop: "64px",        // push below fixed header
+            height: "calc(100vh - 64px)",
+             paddingLeft: expanded ? "24px" : "16px",
+            background:
+      "linear-gradient(135deg, rgba(91,46,255,.08), rgba(203,60,255,.08), rgba(255,138,61,.08))"
+          }}>
           <Outlet />
         </main>
-      </div>
-    </div>
-  );
-};
 
-export default StudentLayout;
+      </div>
+
+    </div>
+  )
+}
+
+export default StudentLayout

@@ -335,22 +335,30 @@ exports.addAssignment = async (req, res) => {
       subject,
       description,
       dueDate,
-      branch,
-      semester,
-      division
+      subjectSlotId
+    
     } = req.body
 
 
-    const assignment = await Assignment.create({
-      title,
-      subject,
-      description,
-      dueDate,
-      branch,
-      semester: Number(semester),
-      division,
-      facultyId: req.user.id
-    })
+   // Get class info from timetable
+const slot = await Timetable.findById(subjectSlotId);
+
+if (!slot) {
+  return res.status(400).json("Invalid class slot");
+}
+
+const assignment = await Assignment.create({
+  title,
+  subject,
+  description,
+  dueDate,
+
+  branch: slot.branch,
+  semester: slot.semester,
+  division: slot.division,
+
+  facultyId: req.user.id
+});
 
 
     res.status(201).json({
@@ -363,6 +371,32 @@ exports.addAssignment = async (req, res) => {
     res.status(500).json(err.message)
   }
 }
+// ================= GET MY ASSIGNMENTS =================
+exports.getMyAssignments = async (req, res) => {
+  try {
+    const list = await Assignment.find({
+      facultyId: req.user.id
+    }).sort({ createdAt: -1 });
+
+    res.json(list);
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+};
+
+// ================= DELETE ASSIGNMENT =================
+exports.deleteAssignment = async (req, res) => {
+  try {
+    await Assignment.findOneAndDelete({
+      _id: req.params.id,
+      facultyId: req.user.id
+    });
+
+    res.json("Assignment deleted");
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+};
 
 
 

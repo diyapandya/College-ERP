@@ -1,358 +1,459 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Calendar, FileText, Users } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Calendar,
+  FileText,
+  Users,
+  AlertCircle,
+  RefreshCcw
+} from "lucide-react";
+
+import api from "../../api/axios";
 
 const AssignmentManagement = () => {
+
+  /* ================= STATE ================= */
+
+  const [assignments, setAssignments] = useState([]);
+  const [classes, setClasses] = useState([]);
+
+  const [selectedSlot, setSelectedSlot] = useState("");
+
   const [showModal, setShowModal] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [formData, setFormData] = useState({
     title: "",
-    course: "Data Structures",
-    dueDate: "",
+    subject: "",
     description: "",
-    totalMarks: "",
+    dueDate: ""
   });
 
-  // Initialize from localStorage or use default data
-  const [assignments, setAssignments] = useState(() => {
-    const savedAssignments = localStorage.getItem("studentPortal_assignments");
-    if (savedAssignments) {
-      return JSON.parse(savedAssignments);
-    }
-    return [
-      {
-        id: 1,
-        title: "Data Structures Lab 1",
-        course: "Data Structures",
-        dueDate: "2026-01-20",
-        submissions: 35,
-        total: 45,
-        status: "Active",
-      },
-      {
-        id: 2,
-        title: "Algorithm Analysis Report",
-        course: "Algorithms",
-        dueDate: "2026-01-25",
-        submissions: 28,
-        total: 38,
-        status: "Active",
-      },
-      {
-        id: 3,
-        title: "Web Project - Phase 1",
-        course: "Web Development",
-        dueDate: "2026-01-18",
-        submissions: 30,
-        total: 30,
-        status: "Closed",
-      },
-      {
-        id: 4,
-        title: "Database Design Assignment",
-        course: "Database Systems",
-        dueDate: "2026-01-22",
-        submissions: 18,
-        total: 42,
-        status: "Active",
-      },
-    ];
-  });
 
-  // Save to localStorage whenever assignments change
+  /* ================= FETCH ================= */
+
   useEffect(() => {
-    localStorage.setItem(
-      "studentPortal_assignments",
-      JSON.stringify(assignments)
-    );
-  }, [assignments]);
+    fetchAssignments();
+    fetchClasses();
+  }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await api.get("/faculty/assignment");
+
+      setAssignments(res.data || []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load assignments");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e) => {
+
+  const fetchClasses = async () => {
+    try {
+      const res = await api.get("/faculty/my-classes");
+
+      setClasses(res.data || []);
+    } catch (err) {
+      console.error("Failed to load classes", err);
+    }
+  };
+
+
+  /* ================= FORM ================= */
+
+  const handleChange = (e) => {
+    setFormData((p) => ({
+      ...p,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+
+  /* ================= CREATE ================= */
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.dueDate || !formData.totalMarks) {
-      alert("Please fill in all required fields");
+    if (!selectedSlot) {
+      alert("Please select a class");
       return;
     }
 
-    const newAssignment = {
-      id: Date.now(),
-      title: formData.title,
-      course: formData.course,
-      dueDate: formData.dueDate,
-      submissions: 0,
-      total: 45,
-      status: "Active",
-    };
+    try {
 
-    setAssignments([...assignments, newAssignment]);
-    setFormData({
-      title: "",
-      course: "Data Structures",
-      dueDate: "",
-      description: "",
-      totalMarks: "",
-    });
-    setShowModal(false);
-  };
+      await api.post("/faculty/assignment", {
+        ...formData,
+        subjectSlotId: selectedSlot
+      });
 
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this assignment?")) {
-      setAssignments(assignments.filter((a) => a.id !== id));
+      setShowModal(false);
+
+      setFormData({
+        title: "",
+        subject: "",
+        description: "",
+        dueDate: ""
+      });
+
+      setSelectedSlot("");
+
+      fetchAssignments();
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create assignment");
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            Assignment Management
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Create and manage student assignments
-          </p>
-        </div>
+
+  /* ================= DELETE ================= */
+
+  const handleDelete = async (id) => {
+
+    if (!confirm("Delete this assignment?")) return;
+
+    try {
+      await api.delete(`/faculty/assignment/${id}`);
+
+      fetchAssignments();
+    } catch {
+      alert("Delete failed");
+    }
+  };
+
+
+  /* ================= STATS ================= */
+
+  const activeCount = assignments.filter(
+    (a) => new Date(a.dueDate) >= new Date()
+  ).length;
+
+
+  /* ================= LOADING ================= */
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64 text-gray-500">
+        Loading assignments...
+      </div>
+    );
+  }
+
+
+  /* ================= ERROR ================= */
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-red-500">
+
+        <AlertCircle className="w-8 h-8 mb-2" />
+
+        {error}
+
         <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          onClick={fetchAssignments}
+          className="mt-3 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
         >
-          <Plus className="w-5 h-5" />
-          <span>Create Assignment</span>
+          <RefreshCcw size={16} />
+          Retry
         </button>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Total Assignments</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
-                {assignments.length}
-              </p>
-            </div>
-            <FileText className="w-10 h-10 text-primary-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Active Assignments</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
-                {assignments.filter((a) => a.status === "Active").length}
-              </p>
-            </div>
-            <Calendar className="w-10 h-10 text-green-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Pending Reviews</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
-                {assignments.reduce(
-                  (acc, a) => acc + (a.total - a.submissions),
-                  0
-                )}
-              </p>
-            </div>
-            <Users className="w-10 h-10 text-orange-600" />
-          </div>
-        </div>
       </div>
+    );
+  }
 
-      {/* Assignments List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+
+  /* ================= UI ================= */
+
+  return (
+    <div
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(91,46,255,.06), rgba(203,60,255,.06), rgba(255,138,61,.06))"
+      }}
+      className="min-h-screen w-full px-8 py-8"
+    >
+      <div className="max-w-7xl mx-auto space-y-8">
+
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
+
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Assignment Management
+            </h1>
+
+            <p className="text-gray-600 mt-1">
+              Manage student assignments
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus size={18} />
+            Create
+          </button>
+
+        </div>
+
+
+        {/* STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <StatCard
+            title="Total"
+            value={assignments.length}
+            icon={<FileText className="w-8 h-8 text-blue-600" />}
+          />
+
+          <StatCard
+            title="Active"
+            value={activeCount}
+            icon={<Calendar className="w-8 h-8 text-green-600" />}
+          />
+
+          <StatCard
+            title="Expired"
+            value={assignments.length - activeCount}
+            icon={<Users className="w-8 h-8 text-orange-600" />}
+          />
+
+        </div>
+
+
+        {/* TABLE */}
+        <div className="bg-white/80 backdrop-blur rounded-xl shadow border">
+
           <table className="w-full">
+
             <thead className="bg-gray-50 border-b">
+
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assignment
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Course
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Due Date
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Submissions
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                {[
+                  "Title",
+                  "Subject",
+                  "Due",
+                  "Branch",
+                  "Semester",
+                  "Division",
+                  "Actions"
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
+
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {assignments.map((assignment) => (
-                <tr key={assignment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-800">
-                      {assignment.title}
-                    </div>
+
+
+            <tbody className="divide-y">
+
+              {assignments.map((a) => (
+                <tr key={a._id} className="hover:bg-gray-50">
+
+                  <td className="px-6 py-4 font-medium">
+                    {a.title}
                   </td>
+
                   <td className="px-6 py-4 text-gray-600">
-                    {assignment.course}
+                    {a.subject}
                   </td>
+
                   <td className="px-6 py-4 text-gray-600">
-                    {new Date(assignment.dueDate).toLocaleDateString()}
+                    {new Date(a.dueDate).toLocaleDateString()}
                   </td>
+
                   <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <span className="text-gray-800 font-medium">
-                        {assignment.submissions}/{assignment.total}
-                      </span>
-                      <div className="ml-3 w-24 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-primary-600 h-2 rounded-full"
-                          style={{
-                            width: `${
-                              (assignment.submissions / assignment.total) * 100
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
+                    {a.branch}
                   </td>
+
                   <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        assignment.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
+                    {a.semester}
+                  </td>
+
+                  <td className="px-6 py-4">
+                    {a.division}
+                  </td>
+
+                  <td className="px-6 py-4">
+
+                    <button
+                      onClick={() => handleDelete(a._id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
                     >
-                      {assignment.status}
-                    </span>
+                      <Trash2 size={16} />
+                    </button>
+
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex space-x-2">
-                      <button className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(assignment.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {/* Create Assignment Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Create New Assignment
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Assignment Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="e.g., Data Structures Lab 1"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Course *
-                </label>
-                <select
-                  name="course"
-                  value={formData.course}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
-                >
-                  <option>Data Structures</option>
-                  <option>Algorithms</option>
-                  <option>Web Development</option>
-                  <option>Database Systems</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Due Date *
-                </label>
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={formData.dueDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  rows="4"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Assignment description..."
-                ></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Total Marks *
-                </label>
-                <input
-                  type="number"
-                  name="totalMarks"
-                  value={formData.totalMarks}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="100"
-                  required
-                />
-              </div>
-              <div className="flex space-x-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Create Assignment
-                </button>
-              </div>
-            </form>
-          </div>
+            </tbody>
+
+          </table>
+
         </div>
-      )}
+
+
+        {/* MODAL */}
+        {showModal && (
+          <Modal
+            formData={formData}
+            classes={classes}
+            selectedSlot={selectedSlot}
+            setSelectedSlot={setSelectedSlot}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+
+      </div>
     </div>
   );
 };
+
+
+/* ================= REUSABLE ================= */
+
+const StatCard = ({ title, value, icon }) => (
+  <div className="bg-white/80 backdrop-blur p-6 rounded-xl shadow border flex justify-between items-center">
+    <div>
+      <p className="text-sm text-gray-600">{title}</p>
+      <p className="text-3xl font-bold mt-2">{value}</p>
+    </div>
+    {icon}
+  </div>
+);
+
+
+const Modal = ({
+  formData,
+  classes,
+  selectedSlot,
+  setSelectedSlot,
+  onChange,
+  onSubmit,
+  onClose
+}) => (
+
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+
+    <div className="bg-white rounded-xl max-w-lg w-full p-6">
+
+      <h2 className="text-xl font-bold mb-4">
+        Create Assignment
+      </h2>
+
+      <form onSubmit={onSubmit} className="space-y-3">
+
+        {/* Title */}
+        <input
+          name="title"
+          placeholder="Title"
+          value={formData.title}
+          onChange={onChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        {/* Subject */}
+        <input
+          name="subject"
+          placeholder="Subject"
+          value={formData.subject}
+          onChange={onChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+
+
+        {/* CLASS SELECT */}
+        <div>
+          <label className="text-sm font-medium mb-1 block">
+            Select Class *
+          </label>
+
+          <select
+            value={selectedSlot}
+            onChange={(e) => setSelectedSlot(e.target.value)}
+            required
+            className="w-full border px-3 py-2 rounded"
+          >
+            <option value="">-- Select Class --</option>
+
+            {classes.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.branch} - Sem {c.semester} - Div {c.division} ({c.subject})
+              </option>
+            ))}
+
+          </select>
+        </div>
+
+
+        {/* DUE DATE */}
+        <input
+          type="date"
+          name="dueDate"
+          value={formData.dueDate}
+          onChange={onChange}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+
+
+        {/* DESCRIPTION */}
+        <textarea
+          name="description"
+          placeholder="Description"
+          value={formData.description}
+          onChange={onChange}
+          className="w-full border px-3 py-2 rounded"
+        />
+
+
+        {/* ACTIONS */}
+        <div className="flex gap-3 pt-2">
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 border py-2 rounded"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="flex-1 bg-blue-600 text-white py-2 rounded"
+          >
+            Create
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+);
+
 
 export default AssignmentManagement;

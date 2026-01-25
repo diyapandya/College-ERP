@@ -1,12 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
 import DashboardCard from "./DashboardCard";
 import Timetable from "./Timetable";
 import Assignments from "./Assignments";
 import Notifications from "./Notifications";
 import Results from "./Results";
+
 import { BarChart3, Award, FileText, Calendar } from "lucide-react";
 
 const Dashboard = () => {
+
+  /* ================= STATE ================= */
+
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  /* ================= STATS DATA ================= */
+
   const statsData = [
     {
       icon: BarChart3,
@@ -44,39 +55,107 @@ const Dashboard = () => {
     },
   ];
 
+  /* ================= LOAD PROFILE ================= */
+
+  useEffect(() => {
+
+    const fetchProfile = async () => {
+      try {
+
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          "http://localhost:5000/api/student/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        setProfile(res.data);
+
+      } catch (err) {
+
+        console.log("Profile not found");
+        setProfile(null);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+    };
+
+    fetchProfile();
+
+  }, []);
+
+  /* ================= LOADING ================= */
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-600">
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  /* ================= PROFILE NOT COMPLETED ================= */
+
+ 
+
+  /* ================= DASHBOARD UI ================= */
+
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      {/* Welcome Section */}
+
+      {/* ================= WELCOME ================= */}
+
       <div className="bg-white border-l-4 border-primary-600 rounded-lg p-6 shadow-sm">
+
         <h1 className="text-2xl lg:text-3xl font-bold mb-2 text-gray-900">
-          Welcome back, Rahul
+          Welcome back, {profile.name}
         </h1>
+
         <p className="text-gray-600">
           Here's an overview of your academic progress and upcoming activities.
         </p>
+
       </div>
 
-      {/* Stats Cards */}
+      {/* ================= STATS ================= */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+
         {statsData.map((stat, index) => (
           <DashboardCard key={index} {...stat} />
         ))}
+
       </div>
 
-      {/* Main Content Grid */}
+      {/* ================= MAIN GRID ================= */}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Timetable & Assignments */}
+
+        {/* Left */}
         <div className="lg:col-span-2 space-y-6">
+
           <Timetable />
           <Assignments />
+
         </div>
 
-        {/* Right Column - Notifications & Results */}
+        {/* Right */}
         <div className="space-y-6">
+
           <Notifications />
           <Results />
+
         </div>
+
       </div>
+
     </div>
   );
 };

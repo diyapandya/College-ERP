@@ -6,17 +6,28 @@ import {
   Award,
   Bell,
   Settings,
-  LogOut,
-  X,
+  LogOut
 } from "lucide-react";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+/* =====================================================
+   HOTSTAR STYLE SIDEBAR
+===================================================== */
+
+const Sidebar = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
 
+  /* Expand State */
+  const [expanded, setExpanded] = useState(false);
+
+  /* Menu */
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/student" },
     { icon: BookOpen, label: "Courses", path: "/student/courses" },
@@ -24,71 +35,140 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { icon: FileText, label: "Assignments", path: "/student/assignments" },
     { icon: Award, label: "Results", path: "/student/results" },
     { icon: Bell, label: "Notifications", path: "/student/notifications" },
-    { icon: Settings, label: "Settings", path: "/student/settings" },
+    { icon: Settings, label: "Settings", path: "/student/settings" }
   ];
 
+  /* Logout */
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
   return (
-    <>
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <motion.aside
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white transform transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+      /* Width animation */
+      animate={{
+        width: expanded ? 210 : 70
+      }}
+
+      transition={{ duration: 0.3 }}
+
+      /* Hover Expand */
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+
+      className="fixed top-0 left-0 h-screen z-40 flex flex-col"
+
+      style={{
+
+        /* Glass Background */
+        background: "#0f172a",
+
+        backdropFilter: "blur(16px)",
+
+        WebkitBackdropFilter: "blur(16px)",
+
+        borderRight: "1px solid rgba(255,255,255,0.08)",
+
+        boxShadow: "6px 0 30px rgba(0,0,0,.4)"
+      }}
+    >
+
+      {/* ================= LOGO ================= */}
+      <div
+        className="h-16 flex items-center justify-center border-b border-white/10"
       >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-slate-800 flex justify-between">
-            <h1 className="text-xl font-bold">College ERP</h1>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden"
-            >
-              <X />
-            </button>
-          </div>
+        <span className="text-white font-bold text-xl">
+          🎓
+        </span>
+      </div>
 
-          <nav className="flex-1 px-4 py-6 space-y-1">
-            {menuItems.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  navigate(item.path);
-                  setSidebarOpen(false);
-                }}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg w-full text-left ${
-                  location.pathname === item.path
-                    ? "bg-primary-600 text-white"
-                    : "text-slate-300 hover:bg-slate-800"
-                }`}
-              >
-                <item.icon size={20} />
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
 
-          <div className="p-4 border-t border-slate-800">
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-3 px-4 py-3 w-full hover:bg-slate-800 rounded-lg"
-            >
-              <LogOut size={20} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-    </>
+      {/* ================= MENU ================= */}
+      <nav className="flex-1 px-2 py-4 space-y-2">
+
+        {menuItems.map((item, i) => {
+
+          const isActive = location.pathname === item.path;
+
+          return (
+
+            <motion.button
+  key={i}
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={() => navigate(item.path)}
+
+  className={`w-full flex items-center gap-3
+    px-3 py-3 rounded-xl
+    transition-all duration-300
+    ${
+      isActive
+        ? "text-white shadow-lg"
+        : "text-gray-300 hover:bg-white/10"
+    }
+  `}
+
+  style={
+    isActive
+      ? {
+          background:
+            "linear-gradient(135deg, rgba(91,46,255,.08), rgba(203,60,255,.08), rgba(255,138,61,.08))"
+        }
+      : {}
+  }
+>
+
+
+              {/* ICON */}
+              <item.icon size={22} />
+
+              {/* LABEL (Only When Expanded) */}
+              {expanded && (
+                <span className="text-sm font-medium whitespace-nowrap">
+                  {item.label}
+                </span>
+              )}
+
+            </motion.button>
+
+          );
+        })}
+
+      </nav>
+
+
+      {/* ================= LOGOUT ================= */}
+      <div className="p-2 border-t border-white/10">
+
+        <motion.button
+
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+
+          onClick={handleLogout}
+
+          className="w-full flex items-center gap-3
+                     px-3 py-3 rounded-xl
+                     text-red-300 hover:text-white
+                     hover:bg-red-500/20
+                     transition-all"
+        >
+
+          <LogOut size={22} />
+
+          {expanded && (
+            <span className="text-sm font-medium">
+              Logout
+            </span>
+          )}
+
+        </motion.button>
+
+      </div>
+
+    </motion.aside>
   );
 };
 

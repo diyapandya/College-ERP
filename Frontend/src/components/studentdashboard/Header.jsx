@@ -3,7 +3,7 @@ import { Menu, Bell, X } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import axios from "axios"
 
-const Header = ({ setSidebarOpen }) => {
+const Header = ({ expanded }) => {
   const { user } = useAuth()
 
   const [showNotifications, setShowNotifications] = useState(false)
@@ -40,7 +40,7 @@ const Header = ({ setSidebarOpen }) => {
     }
 
     fetchProfile()
-  }, [])
+  }, [user])
 
   /* 🔔 Fetch notifications */
   useEffect(() => {
@@ -67,30 +67,37 @@ const Header = ({ setSidebarOpen }) => {
 
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10 lg:ml-64">
-        <div className="flex items-center justify-between px-4 py-4 lg:px-6">
+    <header
+      className="
+        fixed top-0 right-0
+        h-16
+        bg-[#0f172a]
+      
+        transition-all duration-300
+        flex items-center
+      "
+      style={{
+        left: expanded ? "210px" : "70px" // ✅ Shift with sidebar
+      }}
+    >
+       <div className="flex items-center justify-between h-full px-6 w-full">
 
           {/* LEFT */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-600"
-            >
-              <Menu size={24} />
-            </button>
+          <div className="flex items-center ">
 
-            <h1 className="text-lg font-semibold text-gray-800">
+            <h1 className="text-lg font-bold text-white">
               Student Dashboard
             </h1>
           </div>
 
           {/* RIGHT */}
-          <div className="flex items-center space-x-4 relative">
+          <div className="flex items-center space-x-4 relative ">
 
             {/* 🔔 Notifications */}
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
+
             >
               <Bell size={22} />
               {notifications.length > 0 && (

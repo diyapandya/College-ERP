@@ -19,6 +19,8 @@ const {
 
   // Assignment / Result
   addAssignment,
+  getMyAssignments,
+deleteAssignment,
   addResult,
 
   // Dashboard
@@ -39,7 +41,8 @@ const {
 
 // Assignment
 router.post("/assignment", auth, role("faculty"), addAssignment)
-
+router.get("/assignment", auth, role("faculty"), getMyAssignments);
+router.delete("/assignment/:id", auth, role("faculty"), deleteAssignment);
 // Attendance
 router.post("/attendance", auth, role("faculty"), submitAttendance)
 
