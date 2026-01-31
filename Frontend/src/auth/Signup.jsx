@@ -13,17 +13,21 @@ export default function Signup() {
     e.preventDefault();
     const form = Object.fromEntries(new FormData(e.target));
 
-    try {
-      const res = await axios.post("/auth/register", form);
-      if (res.status === 200 || res.status === 201) {
-         localStorage.setItem("pendingEmail", form.email);
-      alert("Signup Successful!");
-      
-      nav("/login");
-    } }
-    catch (err) {
-      alert(err.response?.data || "Signup failed");
-    }
+   try {
+  const res = await axios.post("/auth/register", form);
+
+  if (res.data.success) {
+    localStorage.setItem("pendingEmail", res.data.email);
+
+    alert(res.data.message); // ✅ backend message
+
+    nav("/login");
+  }
+
+} catch (err) {
+  alert(err.response?.data?.message || "Signup failed");
+}
+
   };
 
   <style>{`

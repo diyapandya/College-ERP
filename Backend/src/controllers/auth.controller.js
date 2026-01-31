@@ -31,7 +31,9 @@ exports.register = async (req, res) => {
     console.log("🔐 SIGNUP OTP (DEV MODE):", otp);
 
     res.status(201).json({
-      message: "OTP sent (DEV MODE)",
+      success: true,
+  message: "Signup successful. Please verify OTP.",
+  email: user.email,
       otp    // return for testing (remove in production)
     });
 
