@@ -13,6 +13,7 @@ export default function Signup() {
     e.preventDefault();
     const form = Object.fromEntries(new FormData(e.target));
 
+<<<<<<< HEAD
     try {
       const res = await axios.post("/auth/register", form);
       if (res.status === 200 || res.status === 201) {
@@ -24,6 +25,23 @@ export default function Signup() {
    catch (err) {
   alert(err.response?.data?.message || err.message || "Signup failed");
 }
+=======
+   try {
+  const res = await axios.post("/auth/register", form);
+
+  if (res.data.success) {
+    localStorage.setItem("pendingEmail", res.data.email);
+
+    alert(res.data.message); // ✅ backend message
+
+    nav("/login");
+  }
+
+} catch (err) {
+  alert(err.response?.data?.message || "Signup failed");
+}
+
+>>>>>>> 334026d55b69dfe272dbc396ccf4647c0b1b2d26
   };
 
   <style>{`

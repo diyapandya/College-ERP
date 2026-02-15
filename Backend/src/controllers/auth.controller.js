@@ -29,6 +29,7 @@ exports.register = async (req, res) => {
 
     console.log("🔐 SIGNUP OTP (DEV MODE):", otp);
 
+<<<<<<< HEAD
         await User.create({
       name,
       email,
@@ -39,6 +40,13 @@ exports.register = async (req, res) => {
       otp,
       otpExpiry,
       isVerified: false
+=======
+    res.status(201).json({
+      success: true,
+  message: "Signup successful. Please verify OTP.",
+  email: user.email,
+      otp    // return for testing (remove in production)
+>>>>>>> 334026d55b69dfe272dbc396ccf4647c0b1b2d26
     });
 
       res.status(201).json({
