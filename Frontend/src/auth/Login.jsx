@@ -1,133 +1,98 @@
 import { useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import aiImage from "../assets/login.png"; 
-
+import aiImage from "../assets/login.png";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
+
   const nav = useNavigate();
+  const { login: saveSession } = useAuth();
+
+  const [role, setRole] = useState("student");
+  const [email, setEmail] = useState("");
+  const [enrollmentNo, setEnrollmentNo] = useState("");
+  const [facultyId, setFacultyId] = useState("");
+  const [password, setPassword] = useState("");
+   const [otp, setOtp] = useState("");
+  const [otpStep, setOtpStep] = useState(false);
+
   const split = "Hey, you!".split("");
-  const pendingEmail = localStorage.getItem("pendingEmail");
-const { login: saveSession } = useAuth();
 
-  const login = async () => {
-    try {
-      // OTP Verification First
-     if (pendingEmail) {
-  if (!otp) {
-    alert("Please enter OTP");
-    return;
-  }
+  /* ================= LOGIN FUNCTION ================= */
+const handleLogin = async () => {
+  try {
 
-  await api.post("/auth/verify-signup-otp", {
-    email: pendingEmail,
-    otp
-  });
+    const res = await api.post("/auth/login", {
+      email,
+      enrollmentNo: role === "student" ? enrollmentNo : null,
+      linkedFacultyId: role === "faculty" ? facultyId : null,
+      password,
+      otp
+    });
 
-  localStorage.removeItem("pendingEmail");
-  alert("OTP verified. Logging you in...");
-}
+    localStorage.setItem("token", res.data.token);
+    saveSession(res.data.user);
 
+    if (res.data.role === "student") nav("/student");
+    if (res.data.role === "faculty") nav("/faculty");
+    if (res.data.role === "parent") nav("/parent");
 
-      const res = await api.post("/auth/login", { email, password })
+  } catch (err) {
 
-localStorage.setItem("token", res.data.token)
-
-// ✅ SAVE FULL USER PAYLOAD
-saveSession({
-  id: res.data.id,
-  name: res.data.name,
-  role: res.data.role,
-  linkedStudentId: res.data.linkedStudentId || null
-})
-
-// 🚦 ROUTING AFTER LOGIN
-if (res.data.role === "student") nav("/student")
-if (res.data.role === "faculty") nav("/faculty")
-if (res.data.role === "parent") nav("/parent")
-if (res.data.role === "admin") nav("/admin")
-    } catch (err) {
-      alert(err.response?.data?.message || "Invalid Login");
+    // If OTP required
+    if (err.response?.data?.message === "Account not verified. Enter OTP.") {
+      alert("Enter OTP sent during signup (check console)");
+      setOtpStep(true);
+      return;
     }
-  };
-  {/* FLOAT ANIMATION */}
-<style>{`
-  @keyframes float {
-    0%   { transform: translateY(0px); }
-    50%  { transform: translateY(-18px); }
-    100% { transform: translateY(0px); }
-  }
-`}</style>
 
+    alert(err.response?.data?.message || "Login Failed");
+  }
+};
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#F8FAFC",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 40
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: 1100,
-        background: "#fff",
-        borderRadius: 28,
-        boxShadow: "0 40px 90px rgba(15,23,42,.12)",
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        overflow: "hidden"
-      }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#F8FAFC",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 40
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1100,
+          background: "#fff",
+          borderRadius: 28,
+          boxShadow: "0 40px 90px rgba(15,23,42,.12)",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          overflow: "hidden",
+          position: "relative"
+        }}
+      >
 
-        {/* LEFT GRADIENT */}
-
-                {/* Glow Background */}
-<div
-  style={{
-    position: "absolute",
-    width: 280,
-    height: 280,
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.15)",
-    top: 40,
-    left: 40,
-    filter: "blur(60px)"
-  }}
-/>
-
-<div
-  style={{
-    position: "absolute",
-    width: 200,
-    height: 200,
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.12)",
-    bottom: 60,
-    right: 60,
-    filter: "blur(50px)"
-  }}
-/>
-
-        <div style={{
-          background: "linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
-          color: "#fff",
-          padding: 70,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",       
-    textAlign: "center",
-    position: "relative"
-        }}>
-
-  
-          <motion.h1 style={{ fontSize: 46, marginBottom: 12, display: "flex", gap: 4 }}>
+        {/* LEFT SIDE */}
+        <div
+          style={{
+            background: "linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
+            color: "#fff",
+            padding: 70,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center"
+          }}
+        >
+          <motion.h1
+            style={{ fontSize: 46, marginBottom: 12, display: "flex", gap: 4 }}
+          >
             {split.map((c, i) => (
               <motion.span
                 key={i}
@@ -139,61 +104,123 @@ if (res.data.role === "admin") nav("/admin")
               </motion.span>
             ))}
           </motion.h1>
+
           <p style={{ opacity: 0.9 }}>
             Login to continue to your dashboard.
           </p>
-          {/* FLOATING IMAGE */}
-<motion.img
-  src={aiImage}
-  alt="AI Education"
-  style={{
-    width: 360,
-    marginTop: 40,
-    animation: "float 4s ease-in-out infinite",
-    filter: "drop-shadow(0 30px 45px rgba(91,46,255,.35))"
-  }}
-  animate={{
-      y: [0, -18, 0],
-      rotate: [0, 1.5, 0],
-      scale: [1, 1.02, 1]
-    }}
-    transition={{
-      duration: 4,
-      ease: "easeInOut",
-      repeat: Infinity,
-      repeatType: "loop"
-    }}
-  />
 
-
+          <motion.img
+            src={aiImage}
+            alt="AI Education"
+            style={{
+              width: 360,
+              marginTop: 40,
+              filter: "drop-shadow(0 30px 45px rgba(91,46,255,.35))"
+            }}
+            animate={{
+              y: [0, -18, 0],
+              rotate: [0, 1.5, 0],
+              scale: [1, 1.02, 1]
+            }}
+            transition={{
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity
+            }}
+          />
         </div>
 
-        {/* FORM */}
+        {/* RIGHT SIDE FORM */}
         <div style={{ padding: 60 }}>
-          <h2 style={{ fontSize: 30, marginBottom: 10 }}>LDRP ERP Login</h2>
-          <p style={{ color: "#64748B", marginBottom: 30 }}>Enter your credentials</p>
+          <h2 style={{ fontSize: 30, marginBottom: 10 }}>
+            College ERP Login
+          </h2>
 
-          <input placeholder="Email address" style={input} onChange={e => setEmail(e.target.value)} />
-          <input placeholder="Password" type="password" style={input} onChange={e => setPassword(e.target.value)} />
+          <p style={{ color: "#64748B", marginBottom: 30 }}>
+            Enter your credentials
+          </p>
 
-      
+          {/* ROLE SELECT */}
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            style={input}
+          >
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="parent">Parent</option>
+          </select>
+
+         
+
+          {/* STUDENT FIELD */}
+          {role === "student" && (
             <input
-              placeholder="Enter OTP to verify account"
+              placeholder="Enrollment No (e.g. 23BECE30494)"
               style={input}
-              onChange={e => setOtp(e.target.value)}
+              pattern="^[0-9]{2}[A-Z]{4}[0-9]{2}[0-9]{3}$"
+              title="Format: 23BECE30494"
+              value={enrollmentNo}
+              onChange={(e) => setEnrollmentNo(e.target.value)}
+              required
             />
-          
+          )}
 
-          <button onClick={login} style={btn}>Login</button>
+          {/* FACULTY FIELD */}
+          {role === "faculty" && (
+            <input
+              placeholder="Faculty ID"
+              style={input}
+              value={facultyId}
+              onChange={(e) => setFacultyId(e.target.value)}
+              required
+            />
+          )}
+           {/* EMAIL FIELD */}
+          <input
+            type="email"
+            placeholder="Email Address"
+            style={input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          {/* PASSWORD */}
+          <input
+            type="password"
+            placeholder="Password"
+            style={input}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {/* OTP FIELD (only after step 1) */}
+        
+          <input
+            placeholder="Enter OTP"
+            style={input}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+          />
+        
+          <button onClick={handleLogin} style={btn}>
+            Login
+          </button>
 
           <p style={{ marginTop: 20, color: "#64748B" }}>
-            Don’t have an account? <Link to="/signup" style={{ color: "#5B2EFF" }}>Sign up</Link>
+            Don’t have an account?{" "}
+            <Link to="/signup" style={{ color: "#5B2EFF" }}>
+              Sign up
+            </Link>
           </p>
         </div>
       </div>
     </div>
   );
 }
+
+/* ================= STYLES ================= */
 
 const input = {
   width: "100%",
@@ -214,5 +241,5 @@ const btn = {
   color: "#fff",
   fontSize: 16,
   fontWeight: 600,
-  cursor: "pointer",
+  cursor: "pointer"
 };

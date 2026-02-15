@@ -21,9 +21,9 @@ export default function Signup() {
       
       nav("/login");
     } }
-    catch (err) {
-      alert(err.response?.data || "Signup failed");
-    }
+   catch (err) {
+  alert(err.response?.data?.message || err.message || "Signup failed");
+}
   };
 
   <style>{`
@@ -154,12 +154,15 @@ export default function Signup() {
 </select>
 {role === "student" && (
   <input
-    name="linkedStudentId"
-    placeholder="Student ID (e.g. STU001)"
+    name="enrollmentNo"
+    placeholder="Enrollment No (e.g. 23BECE30494)"
     style={input}
+    pattern="^[0-9]{2}[A-Z]{4}[0-9]{2}[0-9]{3}$"
+    title="Format: 23BECE30494"
     required
   />
 )}
+
 
 {role === "faculty" && (
   <input

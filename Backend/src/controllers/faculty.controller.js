@@ -15,7 +15,6 @@ const {
   sendAttendanceRiskAlert
 } = require("../services/notification.service")
 
-
 // ================= ATTENDANCE =================
 exports.submitAttendance = async (req, res) => {
   try {
@@ -29,74 +28,158 @@ exports.submitAttendance = async (req, res) => {
       division,
       batch,
       presentStudents
-    } = req.body
+    } = req.body;
 
-    const facultyId = req.user.id
+    const facultyId = req.user.id;
 
 
     /* =====================================================
-       ✅ VALIDATE FACULTY TEACHES THIS SUBJECT
-       ===================================================== */
+       ✅ VALIDATE FACULTY SLOT
+    ===================================================== */
+
     const validSlot = await Timetable.findOne({
       facultyId,
       subject,
       day: new Date(date).toLocaleString("en-US", { weekday: "long" }),
       startTime: slot.start
-    })
+    });
 
     if (!validSlot) {
-      return res.status(403).json("Not your lecture")
+      return res.status(403).json("Not your lecture");
     }
 
+
     /* =====================================================
-       ✅ FETCH STUDENTS (DIVISION / BATCH WISE)
-       ===================================================== */
+       ✅ PREVENT DUPLICATE
+    ===================================================== */
+
+    const exists = await Attendance.findOne({
+      subject,
+      date,
+      "slot.start": slot.start,
+      branch,
+      semester,
+      division
+    });
+
+    if (exists) {
+      return res
+        .status(400)
+        .json("Attendance already marked for this lecture");
+    }
+
+
+    /* =====================================================
+       ✅ FETCH STUDENTS
+    ===================================================== */
+
     const students = await Student.find({
       branch,
       semester,
       division,
       ...(batch && { batch })
-    })
+    });
 
 
-    /* =====================================================
-       ✅ PREPARE ATTENDANCE RECORDS
-       ===================================================== */
-    let records = []
-
-    for (const s of students) {
-
-      const isPresent = presentStudents.includes(s.studentId)
-
-      records.push({
-        studentId: s.studentId,
-        subject,
-        date,
-        slot,
-        facultyId,
-
-        branch,
-        semester,
-        division,
-        batch,
-
-        status: isPresent ? "Present" : "Absent"
-      })
+    if (!students.length) {
+      return res.status(404).json("No students found");
     }
 
 
     /* =====================================================
-       ✅ SAVE ATTENDANCE
-       ===================================================== */
-    await Attendance.insertMany(records)
-    await syncMentorDashboard(semester + division)
+       ✅ PREPARE RECORDS
+    ===================================================== */
 
-    res.json({ message: "Attendance Saved Successfully" })
+    const records = students.map(s => ({
+
+      studentId: s.studentId,
+
+      subject,
+      date,
+      slot,
+
+      facultyId,
+
+      branch,
+      semester,
+      division,
+      batch,
+
+      status: presentStudents.includes(s.studentId)
+        ? "present"
+        : "absent"
+    }));
+
+
+    /* =====================================================
+       ✅ SAVE ATTENDANCE
+    ===================================================== */
+
+    await Attendance.insertMany(records);
+
+
+    /* =====================================================
+       ✅ UPDATE ACADEMIC SUMMARY
+    ===================================================== */
+
+    const studentIds = students.map(s => s.studentId);
+
+    const total = await Attendance.countDocuments({
+      studentId: { $in: studentIds },
+      subject
+    });
+
+    const present = await Attendance.countDocuments({
+      studentId: { $in: studentIds },
+      subject,
+      status: "present"
+    });
+
+    const percent = total
+      ? Math.round((present / total) * 100)
+      : 0;
+
+
+    await Academic.updateMany(
+      {
+        subject,
+        studentId: { $in: studentIds }
+      },
+      {
+        attendancePercent: percent,
+        riskFlag: percent < 75
+      }
+    );
+
+
+    /* =====================================================
+       ✅ SYNC MENTOR
+    ===================================================== */
+
+    await syncMentorDashboard(semester + division);
+
+
+    /* =====================================================
+       ✅ RESPONSE
+    ===================================================== */
+
+    res.json({
+      message: "Attendance saved successfully",
+      percentage: percent
+    });
+
 
   } catch (err) {
-    res.status(500).json({ error: err.message })
+
+    console.error("Attendance Error:", err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
   }
-}
+};
+
 
 
 

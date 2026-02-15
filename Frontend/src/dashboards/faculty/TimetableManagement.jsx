@@ -1,156 +1,140 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Clock, MapPin } from "lucide-react";
-import api from "../../api/axios"; // 🔗 BACKEND INTEGRATION (ADDED)
+import { useNavigate } from "react-router-dom";
 
 const TimetableManagement = () => {
-  const [showModal, setShowModal] = useState(false);
 
-  const [formData, setFormData] = useState({
-    day: "Monday",
-    subject: "",
-    startTime: "",
-    endTime: "",
-    room: "",
-    branch: "",
-    semester: "",
-    division: "",
-  });
+  const navigate = useNavigate();
+
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  const slots = [
+    "Slot 1",
+    "Slot 2",
+    "Slot 3",
+    "Slot 4",
+    "Slot 5",
+    "Slot 6"
+  ];
+
+  const dummyTimetable = [
+    { day: "Monday", slot: "Slot 1", subject: "SE", semester: 6, division: "A" },
+    { day: "Monday", slot: "Slot 2", subject: "SE", semester: 6, division: "B" },
+    { day: "Monday", slot: "Slot 3", subject: "CN Lab", semester: 5, division: "A", batch: "1" },
+    { day: "Monday", slot: "Slot 4", subject: "CN Lab", semester: 5, division: "A", batch: "1" },
+    { day: "Monday", slot: "Slot 6", subject: "OS", semester: 4, division: "B" },
+
+    { day: "Tuesday", slot: "Slot 1", subject: "DBMS", semester: 4, division: "A" },
+    { day: "Tuesday", slot: "Slot 3", subject: "DSA Lab", semester: 3, division: "B", batch: "2" },
+    { day: "Tuesday", slot: "Slot 4", subject: "DSA Lab", semester: 3, division: "B", batch: "2" },
+    { day: "Tuesday", slot: "Slot 5", subject: "AI", semester: 6, division: "A" },
+    { day: "Tuesday", slot: "Slot 6", subject: "AI", semester: 6, division: "B" },
+
+    { day: "Wednesday", slot: "Slot 3", subject: "CN", semester: 5, division: "A" },
+    { day: "Wednesday", slot: "Slot 4", subject: "CN", semester: 5, division: "B" },
+    { day: "Wednesday", slot: "Slot 5", subject: "Project", semester: 7, division: "A" },
+    { day: "Wednesday", slot: "Slot 6", subject: "Project", semester: 7, division: "B" },
+
+    { day: "Thursday", slot: "Slot 1", subject: "DBMS Lab", semester: 4, division: "A", batch: "1" },
+    { day: "Thursday", slot: "Slot 2", subject: "DBMS Lab", semester: 4, division: "A", batch: "1" },
+    { day: "Thursday", slot: "Slot 4", subject: "SE", semester: 6, division: "A" },
+    { day: "Thursday", slot: "Slot 5", subject: "SE", semester: 6, division: "B" },
+
+    { day: "Friday", slot: "Slot 1", subject: "OS", semester: 4, division: "A" },
+    { day: "Friday", slot: "Slot 2", subject: "OS", semester: 4, division: "B" },
+    { day: "Friday", slot: "Slot 3", subject: "AI Lab", semester: 6, division: "A", batch: "2" },
+    { day: "Friday", slot: "Slot 4", subject: "AI Lab", semester: 6, division: "A", batch: "2" },
+
+    { day: "Saturday", slot: "Slot 1", subject: "CN", semester: 5, division: "A" },
+    { day: "Saturday", slot: "Slot 2", subject: "DBMS", semester: 4, division: "A" },
+    { day: "Saturday", slot: "Slot 4", subject: "Project Discussion", semester: 7 }
+  ];
 
   const [schedules, setSchedules] = useState([]);
 
-  /* --------------------------------------------------
-     🔗 FETCH TIMETABLE FROM BACKEND (ADDED)
-  -------------------------------------------------- */
   useEffect(() => {
-    fetchTimetable();
+    setSchedules(dummyTimetable);
   }, []);
 
-  const fetchTimetable = async () => {
-    try {
-      const res = await api.get("/faculty/timetable");
-      setSchedules(res.data);
-    } catch (err) {
-      console.error("Failed to load timetable", err);
-    }
+  const getLecture = (day, slot) => {
+    return schedules.find(s => s.day === day && s.slot === slot);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  /* --------------------------------------------------
-     🔗 SUBMIT TIMETABLE TO BACKEND (CHANGED)
-  -------------------------------------------------- */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      await api.post("/faculty/timetable", formData);
-      alert("Timetable added successfully");
-
-      setShowModal(false);
-      setFormData({
-        day: "Monday",
-        subject: "",
-        startTime: "",
-        endTime: "",
-        room: "",
-        branch: "",
-        semester: "",
-        division: "",
-      });
-
-      fetchTimetable(); // 🔄 refresh data
-    } catch (err) {
-      alert(err.response?.data || "Failed to add timetable");
-    }
-  };
-
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-
-  const getSchedulesForDay = (day) => {
-    return schedules.filter((s) => s.day === day);
+  const handleClick = (lecture) => {
+    navigate("/faculty/attendance", { state: lecture });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            Timetable Management
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Manage class schedules and timings
-          </p>
-        </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add Schedule</span>
-        </button>
-      </div>
+      <h1 className="text-3xl font-bold">
+        Faculty Timetable
+      </h1>
 
-      {/* WEEKLY VIEW */}
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="grid grid-cols-1 lg:grid-cols-5 divide-x">
-          {days.map((day) => (
-            <div key={day} className="p-4">
-              <h3 className="font-bold mb-4">{day}</h3>
+      <div className="bg-white rounded-xl shadow border overflow-x-auto">
 
-              {getSchedulesForDay(day).map((s) => (
-                <div key={s._id} className="bg-primary-50 p-3 rounded mb-3">
-                  <h4 className="font-semibold">{s.subject}</h4>
-                  <div className="text-sm text-gray-600">
-                    <Clock className="inline w-4 h-4 mr-1" />
-                    {s.startTime} - {s.endTime}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <MapPin className="inline w-4 h-4 mr-1" />
-                    {s.room}
-                  </div>
-                  <span className="text-xs bg-primary-100 px-2 rounded">
-                    {s.branch} | Sem {s.semester} | {s.division}
-                  </span>
-                </div>
-              ))}
+        <div className="grid grid-cols-7 min-w-[1000px]">
+
+          <div className="p-4 font-bold border">Day</div>
+          {slots.map(slot => (
+            <div key={slot} className="p-4 font-bold border text-center">
+              {slot}
             </div>
           ))}
+
+          {days.map(day => (
+            <>
+              <div key={day} className="p-4 font-bold border">
+                {day}
+              </div>
+
+              {slots.map(slot => {
+                const lecture = getLecture(day, slot);
+
+                return (
+                  <div key={slot + day} className="p-3 border min-h-[100px]">
+
+                    {lecture ? (
+                      <div
+                        onClick={() => handleClick(lecture)}
+                        className="bg-primary-50 p-2 rounded cursor-pointer hover:bg-primary-100 transition"
+                      >
+                        <h4 className="font-semibold">
+                          {lecture.subject}
+                        </h4>
+
+                        <div className="text-xs mt-1">
+                          Sem {lecture.semester}
+                          {lecture.division && ` - ${lecture.division}`}
+                        </div>
+
+                        {lecture.batch && (
+                          <div className="text-xs text-blue-600">
+                            Batch {lecture.batch}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-300 text-sm">
+                        FREE
+                      </span>
+                    )}
+
+                  </div>
+                );
+              })}
+            </>
+          ))}
+
         </div>
+
       </div>
-
-      {/* ADD MODAL */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Add Timetable</h2>
-
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <select name="day" onChange={handleInputChange} value={formData.day}>
-                {days.map((d) => (
-                  <option key={d}>{d}</option>
-                ))}
-              </select>
-
-              <input name="subject" placeholder="Subject" onChange={handleInputChange} />
-              <input name="startTime" placeholder="Start Time" onChange={handleInputChange} />
-              <input name="endTime" placeholder="End Time" onChange={handleInputChange} />
-              <input name="room" placeholder="Room" onChange={handleInputChange} />
-              <input name="branch" placeholder="Branch (CSE)" onChange={handleInputChange} />
-              <input name="semester" placeholder="Semester" onChange={handleInputChange} />
-              <input name="division" placeholder="Division" onChange={handleInputChange} />
-               
-
-              <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded">
-                Save
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
