@@ -8,29 +8,41 @@ exports.register = async (req, res) => {
   try {
     console.log("🔥 REGISTER API HIT");
 
-    const { name, email, password, role, enrollmentNo, linkedFacultyId } = req.body;
+    const {
+      name,
+      email,
+      department,
+      semester,
+      password,
+      role,
+      enrollmentNo,
+      linkedFacultyId,
+    } = req.body;
 
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+      return res
+        .status(400)
+        .json({ message: "All required fields must be filled" });
     }
     // ✅ Enrollment validation for students
     if (role === "student") {
       const enrollmentRegex = /^[0-9]{2}[A-Z]{4}[0-9]{2}[0-9]{3}$/;
       if (!enrollmentNo || !enrollmentRegex.test(enrollmentNo)) {
-        return res.status(400).json({ message: "Invalid Enrollment Number format" });
+        return res
+          .status(400)
+          .json({ message: "Invalid Enrollment Number format" });
       }
     }
 
     const hash = await bcrypt.hash(password, 10);
 
-     // ✅ OTP for ALL USERS
+    // ✅ OTP for ALL USERS
     const otp = generateOTP();
     const otpExpiry = Date.now() + 10 * 60 * 1000;
 
     console.log("🔐 SIGNUP OTP (DEV MODE):", otp);
 
-<<<<<<< HEAD
-        await User.create({
+    await User.create({
       name,
       email,
       password: hash,
@@ -38,20 +50,15 @@ exports.register = async (req, res) => {
       enrollmentNo: role === "student" ? enrollmentNo : undefined,
       linkedFacultyId: role === "faculty" ? linkedFacultyId : undefined,
       otp,
+      department,
+      semester: Number(semester),
       otpExpiry,
-      isVerified: false
-=======
-    res.status(201).json({
-      success: true,
-  message: "Signup successful. Please verify OTP.",
-  email: user.email,
-      otp    // return for testing (remove in production)
->>>>>>> 334026d55b69dfe272dbc396ccf4647c0b1b2d26
+      isVerified: false,
     });
 
-      res.status(201).json({
+    res.status(201).json({
       message: "OTP sent for verification",
-      otp // remove in production
+      otp, // remove in production
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -77,7 +84,7 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
-       // ✅ Password check first
+    // ✅ Password check first
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
       return res.status(401).json({ message: "Wrong password" });
@@ -85,21 +92,17 @@ exports.login = async (req, res) => {
 
     // Step 1: If account not verified → require OTP
     if (!user.isVerified) {
-
       // If OTP not provided
       if (!otp) {
         return res.status(400).json({
-          message: "Account not verified. Enter OTP."
+          message: "Account not verified. Enter OTP.",
         });
       }
 
       // Verify OTP
-      if (
-        user.otp !== otp ||
-        user.otpExpiry < Date.now()
-      ) {
+      if (user.otp !== otp || user.otpExpiry < Date.now()) {
         return res.status(400).json({
-          message: "Invalid or expired OTP"
+          message: "Invalid or expired OTP",
         });
       }
 
@@ -110,11 +113,10 @@ exports.login = async (req, res) => {
       await user.save();
     }
 
-   
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.json({
@@ -125,10 +127,9 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -150,9 +151,8 @@ exports.resendOTP = async (req, res) => {
 
     res.json({
       message: "OTP resent successfully",
-      otp // remove in production
+      otp, // remove in production
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -176,9 +176,8 @@ exports.forgotPassword = async (req, res) => {
 
     res.json({
       message: "OTP generated",
-      otp // remove in production
+      otp, // remove in production
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -192,7 +191,7 @@ exports.verifySignupOTP = async (req, res) => {
     const user = await User.findOne({
       email,
       otp,
-      otpExpiry: { $gt: Date.now() }
+      otpExpiry: { $gt: Date.now() },
     });
 
     if (!user)
@@ -204,7 +203,6 @@ exports.verifySignupOTP = async (req, res) => {
     await user.save();
 
     res.json({ message: "Account verified successfully" });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -218,7 +216,7 @@ exports.resetPassword = async (req, res) => {
     const user = await User.findOne({
       email,
       otp,
-      otpExpiry: { $gt: Date.now() }
+      otpExpiry: { $gt: Date.now() },
     });
 
     if (!user)
@@ -230,7 +228,6 @@ exports.resetPassword = async (req, res) => {
     await user.save();
 
     res.json({ message: "Password changed successfully" });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import aiImage from "../assets/login.png"; 
+import aiImage from "../assets/login.png";
 
 export default function Signup() {
   const nav = useNavigate();
@@ -16,30 +16,27 @@ export default function Signup() {
     try {
       const res = await axios.post("/auth/register", form);
       if (res.status === 200 || res.status === 201) {
-         localStorage.setItem("pendingEmail", form.email);
-      alert("Signup Successful!");
-      
-      nav("/login");
-    } }
-   catch (err) {
-  alert(err.response?.data?.message || err.message || "Signup failed");
-}
-   try {
-  const res = await axios.post("/auth/register", form);
+        localStorage.setItem("pendingEmail", form.email);
+        alert("Signup Successful!");
 
-  if (res.data.success) {
-    localStorage.setItem("pendingEmail", res.data.email);
+        nav("/login");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Signup failed");
+    }
+    try {
+      const res = await axios.post("/auth/register", form);
 
-    alert(res.data.message); // ✅ backend message
+      if (res.data.success) {
+        localStorage.setItem("pendingEmail", res.data.email);
 
-    nav("/login");
-  }
+        alert(res.data.message);
 
-} catch (err) {
-  alert(err.response?.data?.message || "Signup failed");
-}
-
-
+        nav("/login");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Signup failed");
+    }
   };
 
   <style>{`
@@ -48,67 +45,75 @@ export default function Signup() {
     50%  { transform: translateY(-18px); }
     100% { transform: translateY(0px); }
   }
-`}</style>
+`}</style>;
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#F8FAFC",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 40
-    }}>
-      <form onSubmit={handleSubmit} style={{
-        width: "100%",
-        maxWidth: 1100,
-        background: "#fff",
-        borderRadius: 28,
-        boxShadow: "0 40px 90px rgba(15,23,42,.12)",
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        overflow: "hidden"
-      }}>
-
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#F8FAFC",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 40,
+      }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          width: "100%",
+          maxWidth: 1100,
+          background: "#fff",
+          borderRadius: 28,
+          boxShadow: "0 40px 90px rgba(15,23,42,.12)",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          overflow: "hidden",
+        }}
+      >
         {/* LEFT WELCOME */}
         {/* Glow Background */}
-<div
-  style={{
-    position: "absolute",
-    width: 280,
-    height: 280,
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.15)",
-    top: 40,
-    left: 40,
-    filter: "blur(60px)"
-  }}
-/>
+        <div
+          style={{
+            position: "absolute",
+            width: 280,
+            height: 280,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.15)",
+            top: 40,
+            left: 40,
+            filter: "blur(60px)",
+          }}
+        />
 
-<div
-  style={{
-    position: "absolute",
-    width: 200,
-    height: 200,
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.12)",
-    bottom: 60,
-    right: 60,
-    filter: "blur(50px)"
-  }}
-/>
-        <div style={{
-          background: "linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
-          color: "#fff",
-          padding: 70,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-           alignItems: "center",       
-    textAlign: "center",
-    position: "relative"
-        }}>
-          <motion.h1 style={{ fontSize: 46, marginBottom: 12, display: "flex", gap: 4 }}>
+        <div
+          style={{
+            position: "absolute",
+            width: 200,
+            height: 200,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.12)",
+            bottom: 60,
+            right: 60,
+            filter: "blur(50px)",
+          }}
+        />
+        <div
+          style={{
+            background: "linear-gradient(135deg,#5B2EFF,#CB3CFF,#FF8A3D)",
+            color: "#fff",
+            padding: 70,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            position: "relative",
+          }}
+        >
+          <motion.h1
+            style={{ fontSize: 46, marginBottom: 12, display: "flex", gap: 4 }}
+          >
             {split.map((c, i) => (
               <motion.span
                 key={i}
@@ -132,21 +137,20 @@ export default function Signup() {
               width: 360,
               marginTop: 40,
               animation: "float 4s ease-in-out infinite",
-              filter: "drop-shadow(0 30px 45px rgba(91,46,255,.35))"
+              filter: "drop-shadow(0 30px 45px rgba(91,46,255,.35))",
             }}
             animate={{
-                y: [0, -18, 0],
-                rotate: [0, 1.5, 0],
-                scale: [1, 1.02, 1]
-              }}
-              transition={{
-                duration: 4,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatType: "loop"
-              }}
-            />
-          
+              y: [0, -18, 0],
+              rotate: [0, 1.5, 0],
+              scale: [1, 1.02, 1],
+            }}
+            transition={{
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatType: "loop",
+            }}
+          />
         </div>
 
         {/* FORM */}
@@ -155,47 +159,78 @@ export default function Signup() {
           <p style={{ color: "#64748B", marginBottom: 30 }}>Choose your role</p>
 
           <input name="name" placeholder="Full Name" style={input} required />
-          <input name="email" placeholder="Email address" style={input} required />
-          <input name="password" type="password" placeholder="Create strong password" style={input} required />
+          <input
+            name="email"
+            placeholder="Email address"
+            style={input}
+            required
+          />
+          <input
+            name="password"
+            type="password"
+            placeholder="Create strong password"
+            style={input}
+            required
+          />
+
+          <input
+            name="department"
+            placeholder="Department (e.g. Computer Science)"
+            style={input}
+            required
+          />
+
+          <input
+            name="semester"
+            placeholder="Semester (e.g. 1, 2, 3...)"
+            style={input}
+            type="number"
+            min="1"
+            max="8"
+            required
+          />
 
           <select
-  name="role"
-  style={input}
-  required
-  onChange={(e) => setRole(e.target.value)}
->
-  <option value="student">Student</option>
-  <option value="faculty">Faculty</option>
-  <option value="parent">Parent</option>
-</select>
-{role === "student" && (
-  <input
-    name="enrollmentNo"
-    placeholder="Enrollment No (e.g. 23BECE30494)"
-    style={input}
-    pattern="^[0-9]{2}[A-Z]{4}[0-9]{2}[0-9]{3}$"
-    title="Format: 23BECE30494"
-    required
-  />
-)}
+            name="role"
+            style={input}
+            required
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="parent">Parent</option>
+          </select>
+          {role === "student" && (
+            <input
+              name="enrollmentNo"
+              placeholder="Enrollment No (e.g. 23BECE30494)"
+              style={input}
+              pattern="^[0-9]{2}[A-Z]{4}[0-9]{2}[0-9]{3}$"
+              title="Format: 23BECE30494"
+              required
+            />
+          )}
 
+          {role === "faculty" && (
+            <input
+              name="linkedFacultyId"
+              placeholder="Faculty ID (e.g. FAC101)"
+              style={input}
+              required
+            />
+          )}
 
-{role === "faculty" && (
-  <input
-    name="linkedFacultyId"
-    placeholder="Faculty ID (e.g. FAC101)"
-    style={input}
-    required
-  />
-)}
-
-          <button type="submit" style={btn}>Create Account</button>
+          <button type="submit" style={btn}>
+            Create Account
+          </button>
 
           <p style={{ marginTop: 20, color: "#64748B" }}>
-            Already have an account? <Link to="/login" style={{ color: "#5B2EFF" }}>Login</Link>
+            Already have an account?{" "}
+            <Link to="/login" style={{ color: "#5B2EFF" }}>
+              Login
+            </Link>
           </p>
         </div>
-
       </form>
     </div>
   );
