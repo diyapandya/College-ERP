@@ -63,6 +63,12 @@ const Dashboard = () => {
       try {
 
         const token = localStorage.getItem("token");
+        if (!token) {
+  console.log("No token found");
+  setLoading(false);
+  return;
+}
+
 
         const res = await axios.get(
           "http://localhost:5000/api/student/profile",
@@ -77,7 +83,7 @@ const Dashboard = () => {
 
       } catch (err) {
 
-        console.log("Profile not found");
+         console.log("Profile not found:", err.response?.data || err.message);
         setProfile(null);
 
       } finally {
@@ -103,7 +109,14 @@ const Dashboard = () => {
 
   /* ================= PROFILE NOT COMPLETED ================= */
 
- 
+ if (!profile) {
+  return (
+    <div className="p-6 text-center text-gray-600">
+      Please complete your profile first.
+    </div>
+  );
+}
+
 
   /* ================= DASHBOARD UI ================= */
 
@@ -115,7 +128,16 @@ const Dashboard = () => {
       <div className="bg-white border-l-4 border-primary-600 rounded-lg p-6 shadow-sm">
 
         <h1 className="text-2xl lg:text-3xl font-bold mb-2 text-gray-900">
-          Welcome back, {profile.name}
+          {profile ? (
+            <>
+              <div>Name: {profile.name}</div>
+              <div>Email: {profile.email}</div>
+              <div>Role: {profile.role}</div>
+              {/* Add more fields as needed */}
+            </>
+          ) : (
+            "Welcome back!"
+          )}
         </h1>
 
         <p className="text-gray-600">

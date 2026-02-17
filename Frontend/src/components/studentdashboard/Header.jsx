@@ -25,7 +25,11 @@ const Header = ({ expanded }) => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token")
-        if (!token) return
+       if (!token) {
+  console.log("No token found");
+  return;
+}
+
 
         const res = await axios.get(
           "http://localhost:5000/api/student/profile",
@@ -35,7 +39,7 @@ const Header = ({ expanded }) => {
         )
         setProfile(res.data)
       } catch (err) {
-        console.error("Profile not loaded")
+        console.error("Profile not loaded:", err.response?.data || err.message);
       }
     }
 

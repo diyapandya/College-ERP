@@ -25,8 +25,9 @@ deleteAssignment,
 
   // Dashboard
   getMonthlySummaries,
-  getStudentsByDivision,
+  getStudentsByClass,
   getStudentVault,
+  
 
   // Faculty Dashboard
   getMyClasses,          // ✅ NEW
@@ -66,7 +67,7 @@ router.post("/result", auth, role("faculty"), addResult)
 router.get("/monthly-summaries", auth, role("faculty"), getMonthlySummaries)
 
 // Students
-router.get("/students", auth, role("faculty"), getStudentsByDivision)
+router.get("/students", auth, role("faculty"), getStudentsByClass)
 
 // Student Vault
 router.get("/student-vault/:studentId", auth, role("faculty"), getStudentVault)

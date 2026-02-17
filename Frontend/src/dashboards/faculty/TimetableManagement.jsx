@@ -23,37 +23,29 @@ const TimetableManagement = () => {
     "Slot 6"
   ];
 
+  /* ================= UPDATED DUMMY TIMETABLE =================
+     Division changed to "P" (to match seeded data)
+     Lab sessions include batch (P1, P2, P3)
+  ============================================================ */
+
   const dummyTimetable = [
-    { day: "Monday", slot: "Slot 1", subject: "SE", semester: 6, division: "A" },
-    { day: "Monday", slot: "Slot 2", subject: "SE", semester: 6, division: "B" },
-    { day: "Monday", slot: "Slot 3", subject: "CN Lab", semester: 5, division: "A", batch: "1" },
-    { day: "Monday", slot: "Slot 4", subject: "CN Lab", semester: 5, division: "A", batch: "1" },
-    { day: "Monday", slot: "Slot 6", subject: "OS", semester: 4, division: "B" },
 
-    { day: "Tuesday", slot: "Slot 1", subject: "DBMS", semester: 4, division: "A" },
-    { day: "Tuesday", slot: "Slot 3", subject: "DSA Lab", semester: 3, division: "B", batch: "2" },
-    { day: "Tuesday", slot: "Slot 4", subject: "DSA Lab", semester: 3, division: "B", batch: "2" },
-    { day: "Tuesday", slot: "Slot 5", subject: "AI", semester: 6, division: "A" },
-    { day: "Tuesday", slot: "Slot 6", subject: "AI", semester: 6, division: "B" },
+    // THEORY (All 75 students of 6P)
+    { day: "Monday", slot: "Slot 1", subject: "SE", semester: 6, division: "P" },
 
-    { day: "Wednesday", slot: "Slot 3", subject: "CN", semester: 5, division: "A" },
-    { day: "Wednesday", slot: "Slot 4", subject: "CN", semester: 5, division: "B" },
-    { day: "Wednesday", slot: "Slot 5", subject: "Project", semester: 7, division: "A" },
-    { day: "Wednesday", slot: "Slot 6", subject: "Project", semester: 7, division: "B" },
+    // LAB (Only Batch P2 → students 26–50)
+    { day: "Tuesday", slot: "Slot 3", subject: "SE Lab", semester: 6, division: "P", batch: "P2" },
+    { day: "Tuesday", slot: "Slot 4", subject: "SE Lab", semester: 6, division: "P", batch: "P2" },
 
-    { day: "Thursday", slot: "Slot 1", subject: "DBMS Lab", semester: 4, division: "A", batch: "1" },
-    { day: "Thursday", slot: "Slot 2", subject: "DBMS Lab", semester: 4, division: "A", batch: "1" },
-    { day: "Thursday", slot: "Slot 4", subject: "SE", semester: 6, division: "A" },
-    { day: "Thursday", slot: "Slot 5", subject: "SE", semester: 6, division: "B" },
+    // LAB (Batch P1 → students 1–25)
+    { day: "Wednesday", slot: "Slot 2", subject: "AI Lab", semester: 6, division: "P", batch: "P1" },
 
-    { day: "Friday", slot: "Slot 1", subject: "OS", semester: 4, division: "A" },
-    { day: "Friday", slot: "Slot 2", subject: "OS", semester: 4, division: "B" },
-    { day: "Friday", slot: "Slot 3", subject: "AI Lab", semester: 6, division: "A", batch: "2" },
-    { day: "Friday", slot: "Slot 4", subject: "AI Lab", semester: 6, division: "A", batch: "2" },
+    // LAB (Batch P3 → students 51–75)
+    { day: "Thursday", slot: "Slot 5", subject: "CN Lab", semester: 6, division: "P", batch: "P3" },
 
-    { day: "Saturday", slot: "Slot 1", subject: "CN", semester: 5, division: "A" },
-    { day: "Saturday", slot: "Slot 2", subject: "DBMS", semester: 4, division: "A" },
-    { day: "Saturday", slot: "Slot 4", subject: "Project Discussion", semester: 7 }
+    // Another class example (Sem 4 Div D)
+    { day: "Friday", slot: "Slot 1", subject: "DBMS", semester: 4, division: "D" }
+
   ];
 
   const [schedules, setSchedules] = useState([]);
@@ -82,6 +74,7 @@ const TimetableManagement = () => {
         <div className="grid grid-cols-7 min-w-[1000px]">
 
           <div className="p-4 font-bold border">Day</div>
+
           {slots.map(slot => (
             <div key={slot} className="p-4 font-bold border text-center">
               {slot}
@@ -89,8 +82,9 @@ const TimetableManagement = () => {
           ))}
 
           {days.map(day => (
-            <>
-              <div key={day} className="p-4 font-bold border">
+            <div key={day} className="contents">
+
+              <div className="p-4 font-bold border">
                 {day}
               </div>
 
@@ -129,7 +123,8 @@ const TimetableManagement = () => {
                   </div>
                 );
               })}
-            </>
+
+            </div>
           ))}
 
         </div>

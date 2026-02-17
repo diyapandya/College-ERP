@@ -14,7 +14,13 @@ All users must authenticate before accessing the system.
 POST
 
 /auth/register
-
+{
+"name": "NiraliPratik Pandya",
+"email": "niralip@student.com",
+"password": "nirali",
+"role": "student",
+"linkedStudentId": "23BECE30496"
+}
 Body
 {
 "name": "Diya Pandya",
@@ -23,7 +29,7 @@ Body
 "role": "student",
 "linkedStudentId": "23BECE30494"
 }
-
+"otp": 821994
 2️⃣ Verify OTP
 
 POST

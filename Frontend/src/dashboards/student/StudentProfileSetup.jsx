@@ -35,10 +35,7 @@ const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
 
   /* ---------------- AUTO LOAD PROFILE ---------------- */
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
+ 
   const loadProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -63,6 +60,9 @@ const navigate = useNavigate();
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+ useEffect(() => {
+    loadProfile();
+  }, []);
 
   /* ---------------- VALIDATION ---------------- */
   const validate = () => {

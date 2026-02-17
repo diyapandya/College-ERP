@@ -508,7 +508,7 @@ exports.getMonthlySummaries = async (req, res) => {
 
 
 // ================= STUDENTS BY DIVISION =================
-exports.getStudentsByDivision = async (req, res) => {
+exports.getStudentsByClass = async (req, res) => {
 
   const { branch, semester, division } = req.query
 

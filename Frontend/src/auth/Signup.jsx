@@ -24,19 +24,7 @@ export default function Signup() {
     } catch (err) {
       alert(err.response?.data?.message || err.message || "Signup failed");
     }
-    try {
-      const res = await axios.post("/auth/register", form);
-
-      if (res.data.success) {
-        localStorage.setItem("pendingEmail", res.data.email);
-
-        alert(res.data.message);
-
-        nav("/login");
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
-    }
+   
   };
 
   <style>{`
@@ -172,25 +160,7 @@ export default function Signup() {
             style={input}
             required
           />
-
-          <input
-            name="department"
-            placeholder="Department (e.g. Computer Science)"
-            style={input}
-            required
-          />
-
-          <input
-            name="semester"
-            placeholder="Semester (e.g. 1, 2, 3...)"
-            style={input}
-            type="number"
-            min="1"
-            max="8"
-            required
-          />
-
-          <select
+            <select
             name="role"
             style={input}
             required
@@ -200,6 +170,63 @@ export default function Signup() {
             <option value="faculty">Faculty</option>
             <option value="parent">Parent</option>
           </select>
+{role === "student" && (
+  <>
+          <select
+            name="department"
+            style={input}
+             required
+            onChange={(e) => setDepartment(e.target.value)}
+          >
+            <option value="">Select Department</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Information and Technology">Information and Technology</option>
+            <option value="Electrical Communication Engineering">Electrical Communication Engineering</option>
+            <option value="Electrical Engineering">Electrical Engineering</option>
+            <option value="Mechanical Engineering">Mechanical Engineering</option>
+            <option value="Civil Engineering">Civil Engineering</option>
+          </select>
+        
+           
+          <select
+            name="semester"
+           style={input}
+             required
+            onChange={(e) => setSemester(e.target.value)}
+          >
+            <option value="">Select Semester</option>
+            <option value="1">1st Semester</option>
+            <option value="2">2nd Semester</option>
+            <option value="3">3rd Semester</option>
+            <option value="4">4th Semester</option>
+            <option value="5">5th Semester</option>
+            <option value="6">6th Semester</option>
+            <option value="7">7th Semester</option>
+            <option value="8">8th Semester</option>
+          </select>
+          
+          <select
+            name="division"
+           style={input}
+             required
+            onChange={(e) => setDivision(e.target.value)}
+          >
+            <option value="">Select Division</option>
+            <option value="1">A Division</option>
+            <option value="2">B Division</option>
+            <option value="3">C Division</option>
+            <option value="4">D Division</option>
+            <option value="5">E Division</option>
+            <option value="6">F Division</option>
+            <option value="7">G Division</option>
+            <option value="8">P Division</option>
+            <option value="9">Q Division</option>
+            <option value="10">I Division</option>
+            <option value="11">J Division</option>
+            <option value="12">K Division</option>
+          </select>
+</>)}
+        
           {role === "student" && (
             <input
               name="enrollmentNo"
