@@ -44,7 +44,7 @@ const {
    ========================================================= */
 
 // Get students by semester & division
-router.get("/", auth, role("faculty"), getStudentsByClass);
+router.get("/class-student", auth, role("faculty"), getStudentsByClass);
 
 
 /* =========================================================

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Student = require("./src/models/student.model");
 
-mongoose.connect("mongodb+srv://diyapandya_db_user:DCC3JYGCrsfPooYF@collegeerp.q8lcilw.mongodb.net/?appName=CollegeERP");
+mongoose.connect("mongodb+srv://diyapandya_db_user:DCC3JYGCrsfPooYF@collegeerp.q8lcilw.mongodb.net/test");
 
 const generateStudents = async () => {
   try {

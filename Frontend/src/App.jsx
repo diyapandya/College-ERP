@@ -97,7 +97,7 @@ export default function App() {
       >
         <Route index element={<Dashboard />} />
         <Route path="timetable" element={<TimetableManagement />} />
-        <Route path="assignments" element={<AssignmentManagement />} />
+        <Route path="/faculty/assignments" element={<AssignmentManagement />} />
         <Route path="results" element={<ResultsManagement />} />
         <Route path="notifications" element={<NotificationsManagement />} />
         <Route path="courses" element={<CourseManagement />} />

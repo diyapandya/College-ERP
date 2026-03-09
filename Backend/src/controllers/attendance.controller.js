@@ -7,7 +7,7 @@ exports.getStudentsForLecture = async (req, res) => {
 
     let filter = {
       role: "student",
-      semester,
+      semester : Number(semester),
       division
     };
 

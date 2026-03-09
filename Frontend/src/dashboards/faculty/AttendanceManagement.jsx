@@ -1,8 +1,26 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Calendar, CheckCircle, XCircle } from "lucide-react";
 
 const AttendanceManagement = () => {
+  const navigate = useNavigate();
+const goToAssignment = () => {
+  const absentStudents = attendance
+    .filter(s => s.status === "absent")
+    .map(s => ({  
+      id : s.id,
+     name: s.name
+    }));
+
+  navigate("/faculty/assignments", {
+    state: {
+      absentStudents,
+      semester: lecture.semester,
+      division: lecture.division
+    }
+  });
+};
   const location = useLocation();
   const lecture = location.state;
 
@@ -25,13 +43,15 @@ const AttendanceManagement = () => {
 
       const token = localStorage.getItem("token");
        const query = new URLSearchParams({
+      
       semester: lecture.semester,
-      division: lecture.division,
+       ...(lecture.division && { division: lecture.division }),
       ...(lecture.batch && { batch: lecture.batch })
     }).toString();
 
       const res = await fetch(
   `http://localhost:5000/api/faculty/students?${query}`,
+  
 
         {
           headers: {
@@ -45,8 +65,8 @@ const AttendanceManagement = () => {
 
       const data = await res.json();
 
-      const formatted = data.map((student) => ({
-        id: student._id,
+      const formatted = data.students.map((student) => ({
+        id: student.studentId,
         rollNo: student.enrollment,
         name: student.name,
         status: "present",
@@ -79,8 +99,11 @@ const AttendanceManagement = () => {
   const saveAttendance = async () => {
     try {
       const token = localStorage.getItem("token");
+      const presentStudents = attendance
+      .filter(s => s.status === "present")
+      .map(s => s.id);
 
-      await fetch("http://localhost:5000/api/attendance", {
+      await fetch("http://localhost:5000/api/faculty/attendance", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,6 +113,7 @@ const AttendanceManagement = () => {
           subject: lecture.subject,
           semester: lecture.semester,
           division: lecture.division,
+           batch: lecture.batch,
           date: selectedDate,
           records: attendance.map((s) => ({
             studentId: s.id,
@@ -159,7 +183,9 @@ const AttendanceManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard title="Total Students" value={attendance.length} icon={<Calendar />} />
         <StatCard title="Present" value={presentCount} icon={<CheckCircle />} green />
-        <StatCard title="Absent" value={absentCount} icon={<XCircle />} red />
+        <div onClick={goToAssignment} className="cursor-pointer">
+  <StatCard title="Absent" value={absentCount} icon={<XCircle />} red />
+</div>
         <StatCard title="Attendance %" value={`${attendancePercentage}%`} />
       </div>
 

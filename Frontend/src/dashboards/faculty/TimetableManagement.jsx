@@ -23,28 +23,46 @@ const TimetableManagement = () => {
     "Slot 6"
   ];
 
-  /* ================= UPDATED DUMMY TIMETABLE =================
-     Division changed to "P" (to match seeded data)
-     Lab sessions include batch (P1, P2, P3)
-  ============================================================ */
+  /* ================= IMAGE BASED TIMETABLE ================= */
 
   const dummyTimetable = [
 
-    // THEORY (All 75 students of 6P)
-    { day: "Monday", slot: "Slot 1", subject: "SE", semester: 6, division: "P" },
+    // ================= MONDAY =================
+    { day: "Monday", slot: "Slot 1", subject: "SE", semester: 6, division: "A" },
+    { day: "Monday", slot: "Slot 2", subject: "SE", semester: 6, division: "B" },
+    { day: "Monday", slot: "Slot 3", subject: "CN Lab", semester: 5, batch: "1" },
+    { day: "Monday", slot: "Slot 4", subject: "CN Lab", semester: 5, batch: "1" },
+    { day: "Monday", slot: "Slot 6", subject: "OS", semester: 4, division: "B" },
 
-    // LAB (Only Batch P2 → students 26–50)
-    { day: "Tuesday", slot: "Slot 3", subject: "SE Lab", semester: 6, division: "P", batch: "P2" },
-    { day: "Tuesday", slot: "Slot 4", subject: "SE Lab", semester: 6, division: "P", batch: "P2" },
+    // ================= TUESDAY =================
+    { day: "Tuesday", slot: "Slot 1", subject: "DBMS", semester: 4, division: "A" },
+    { day: "Tuesday", slot: "Slot 3", subject: "DSA Lab", semester: 4, batch: "2" },
+    { day: "Tuesday", slot: "Slot 4", subject: "DSA Lab", semester: 4, batch: "2" },
+    { day: "Tuesday", slot: "Slot 5", subject: "AI", semester: 6, division: "A" },
+    { day: "Tuesday", slot: "Slot 6", subject: "AI", semester: 6, division: "B" },
 
-    // LAB (Batch P1 → students 1–25)
-    { day: "Wednesday", slot: "Slot 2", subject: "AI Lab", semester: 6, division: "P", batch: "P1" },
+    // ================= WEDNESDAY =================
+    { day: "Wednesday", slot: "Slot 3", subject: "CN", semester: 5, division: "A" },
+    { day: "Wednesday", slot: "Slot 4", subject: "CN", semester: 5, division: "B" },
+    { day: "Wednesday", slot: "Slot 5", subject: "Project", semester: 7, division: "A" },
+    { day: "Wednesday", slot: "Slot 6", subject: "Project", semester: 7, division: "B" },
 
-    // LAB (Batch P3 → students 51–75)
-    { day: "Thursday", slot: "Slot 5", subject: "CN Lab", semester: 6, division: "P", batch: "P3" },
+    // ================= THURSDAY =================
+    { day: "Thursday", slot: "Slot 1", subject: "DBMS Lab", semester: 4, batch: "1" },
+    { day: "Thursday", slot: "Slot 2", subject: "DBMS Lab", semester: 4, batch: "1" },
+    { day: "Thursday", slot: "Slot 4", subject: "SE", semester: 6, division: "A" },
+    { day: "Thursday", slot: "Slot 5", subject: "SE", semester: 6, division: "B" },
 
-    // Another class example (Sem 4 Div D)
-    { day: "Friday", slot: "Slot 1", subject: "DBMS", semester: 4, division: "D" }
+    // ================= FRIDAY =================
+    { day: "Friday", slot: "Slot 1", subject: "AI Lab", semester: 6, batch: "1" },
+    { day: "Friday", slot: "Slot 2", subject: "AI Lab", semester: 6, batch: "1" },
+    { day: "Friday", slot: "Slot 3", subject: "OS", semester: 4, division: "A" },
+    { day: "Friday", slot: "Slot 4", subject: "OS", semester: 4, division: "B" },
+    { day: "Friday", slot: "Slot 6", subject: "Meeting" },
+
+    // ================= SATURDAY =================
+    { day: "Saturday", slot: "Slot 2", subject: "Workshop" },
+    { day: "Saturday", slot: "Slot 3", subject: "Workshop" }
 
   ];
 
@@ -103,10 +121,12 @@ const TimetableManagement = () => {
                           {lecture.subject}
                         </h4>
 
-                        <div className="text-xs mt-1">
-                          Sem {lecture.semester}
-                          {lecture.division && ` - ${lecture.division}`}
-                        </div>
+                        {lecture.semester && (
+                          <div className="text-xs mt-1">
+                            Sem {lecture.semester}
+                            {lecture.division && ` - ${lecture.division}`}
+                          </div>
+                        )}
 
                         {lecture.batch && (
                           <div className="text-xs text-blue-600">

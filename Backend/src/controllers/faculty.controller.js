@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Attendance = require("../models/attendance.model")
 const Marks = require("../models/marks.model")
 const Timetable = require("../models/timetable.model")
@@ -416,44 +417,43 @@ exports.addAssignment = async (req, res) => {
     const {
       title,
       subject,
+      branch,
+      semester,
+      division,
+      batch,
       description,
       dueDate,
-      subjectSlotId
-    
-    } = req.body
+      studentIds
+    } = req.body;
 
-
-   // Get class info from timetable
-const slot = await Timetable.findById(subjectSlotId);
-
-if (!slot) {
-  return res.status(400).json("Invalid class slot");
-}
-
-const assignment = await Assignment.create({
-  title,
-  subject,
-  description,
-  dueDate,
-
-  branch: slot.branch,
-  semester: slot.semester,
-  division: slot.division,
-
-  facultyId: req.user.id
-});
-
+    const assignment = await Assignment.create({
+      title,
+      subject,
+      branch,
+      semester,
+      division,
+      batch,
+      description,
+      dueDate,
+      studentIds: studentIds || [],
+      facultyId: req.user.id
+    });
 
     res.status(201).json({
       message: "Assignment created successfully",
       assignment
-    })
-
+    });
 
   } catch (err) {
-    res.status(500).json(err.message)
+
+    console.error("Assignment Error:", err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
   }
-}
+};
 // ================= GET MY ASSIGNMENTS =================
 exports.getMyAssignments = async (req, res) => {
   try {
@@ -509,18 +509,34 @@ exports.getMonthlySummaries = async (req, res) => {
 
 // ================= STUDENTS BY DIVISION =================
 exports.getStudentsByClass = async (req, res) => {
+  try {
 
-  const { branch, semester, division } = req.query
+    const { semester, division, batch } = req.query;
 
-  const students = await Student.find({
-    branch,
-    semester,
-    division
-  })
+    const sample = await Student.findOne({});
+    console.log("Semester from DB:", sample.semester);
+    console.log("Type:", typeof sample.semester);
+    console.log("Connected DB:", mongoose.connection.name);
 
-  res.json(students)
-}
+    // Build filter
+    const filter = {
+      semester: Number(semester),
+      division
+    };
 
+    // Add batch only if provided
+    if (batch) {
+      filter.batch = batch;
+    }
+
+    const students = await Student.find(filter);
+
+    res.json({ students });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 
 // ================= STUDENT VAULT =================

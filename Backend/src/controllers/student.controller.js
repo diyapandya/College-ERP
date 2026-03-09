@@ -16,20 +16,45 @@ const User = require("../models/user.model");
 /* Get Students by Semester + Division */
 exports.getStudentsByClass = async (req, res) => {
   try {
-    const { semester, division,batch } = req.query;
-  let filter = {
+    const { semester, division, batch, branch } = req.query;
+
+    // Validate required fields
+    if (!semester || !division) {
+      return res.status(400).json({
+        message: "Semester and Division are required"
+      });
+    }
+
+    // Build filter dynamically
+    const filter = {
       semester: Number(semester),
-      division,
+      division: division
     };
 
+    // Optional filters
     if (batch) {
       filter.batch = batch;
     }
+
+    if (branch) {
+      filter.branch = branch;
+    }
+
+    // Fetch students
     const students = await Student.find(filter).sort({ name: 1 });
 
-    res.json(students);
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      students: students
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error fetching students:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching students"
+    });
   }
 };
 
