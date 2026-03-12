@@ -28,7 +28,7 @@ const Header = ({ expanded }) => {
     : "FC";
 
 
-  /* 📥 Fetch Faculty Profile */
+  /* 📥 Fetch Faculty Profile 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -55,30 +55,37 @@ const Header = ({ expanded }) => {
     fetchProfile();
 
   }, [user]);
-
+*/
 
   /* 🔔 Fetch Notifications */
   useEffect(() => {
     const fetchNotifications = async () => {
-      try {
+     try {
 
-        const token = localStorage.getItem("token");
-        if (!token) return;
+  const token = localStorage.getItem("token");
 
-        const res = await axios.get(
-          "http://localhost:5000/api/notifications/my",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
+  if (!token) {
+    setNotifications([]);
+    return;
+  }
 
-        setNotifications(res.data);
-
-      } catch {
-        console.error("Notifications not loaded");
+  const res = await axios.get(
+    "http://localhost:5000/api/notifications/my",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
+    }
+  );
+
+  setNotifications(Array.isArray(res.data) ? res.data : []);
+
+} catch (err) {
+
+  setNotifications([]);
+  console.log("Notifications API not ready");
+
+}
     };
 
     fetchNotifications();

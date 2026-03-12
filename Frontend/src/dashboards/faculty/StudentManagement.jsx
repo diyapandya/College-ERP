@@ -1,193 +1,335 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Eye, Edit2, Mail } from "lucide-react";
+import axios from "axios";
 
 const StudentManagement = () => {
-  const [students] = useState([
-    {
-      id: 1,
-      rollNo: "CS001",
-      name: "John Doe",
-      email: "john.doe@college.edu",
-      phone: "+1234567890",
-      section: "CS-A",
-      attendance: 85,
-    },
-    {
-      id: 2,
-      rollNo: "CS002",
-      name: "Jane Smith",
-      email: "jane.smith@college.edu",
-      phone: "+1234567891",
-      section: "CS-A",
-      attendance: 92,
-    },
-    {
-      id: 3,
-      rollNo: "CS003",
-      name: "Mike Johnson",
-      email: "mike.j@college.edu",
-      phone: "+1234567892",
-      section: "CS-B",
-      attendance: 78,
-    },
-    {
-      id: 4,
-      rollNo: "CS004",
-      name: "Sarah Williams",
-      email: "sarah.w@college.edu",
-      phone: "+1234567893",
-      section: "CS-B",
-      attendance: 88,
-    },
-    {
-      id: 5,
-      rollNo: "CS005",
-      name: "Tom Brown",
-      email: "tom.b@college.edu",
-      phone: "+1234567894",
-      section: "CS-A",
-      attendance: 90,
-    },
-  ]);
+
+  const [students, setStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+
+  const [search, setSearch] = useState("");
+  const [semester, setSemester] = useState("");
+  const [division, setDivision] = useState("");
+
+  const [loading, setLoading] = useState(true);
+
+  /* ================= FETCH STUDENTS ================= */
+
+  const fetchStudents = async () => {
+    try {
+
+      const res = await axios.get("/api/StudentCollections", {
+        params: {
+          semester,
+          division,
+          search
+        }
+      });
+
+      const data = Array.isArray(res.data) ? res.data : res.data.students || [];
+
+      setStudents(data);
+      setFilteredStudents(data);
+
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  /* ================= LOCAL FILTER LOGIC ================= */
+
+
+  useEffect(() => {
+
+    let data = [...students];
+
+    if (semester) {
+      data = data.filter(
+        (student) => student.semester === Number(semester)
+      );
+    }
+
+    if (division) {
+      data = data.filter(
+        (student) => student.division === division
+      );
+    }
+
+    if (search.trim() !== "") {
+
+      const value = search.toLowerCase();
+
+      data = data.filter((student) =>
+        (student.name || "").toLowerCase().includes(value) ||
+        (student.enrollment || "").toLowerCase().includes(value) ||
+        (student.email || "").toLowerCase().includes(value)
+      );
+    }
+
+    setFilteredStudents(data);
+
+  }, [search, semester, division, students]);
+
+
+  /* ================= RESET FILTER ================= */
+
+  const resetFilters = () => {
+    setSearch("");
+    setSemester("");
+    setDivision("");
+    setFilteredStudents(students);
+  };
+
 
   return (
+
     <div className="space-y-6">
+
+      {/* HEADER */}
+
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Student Management</h1>
+
+        <h1 className="text-3xl font-bold text-gray-800">
+          Student Management
+        </h1>
+
         <p className="text-gray-600 mt-1">
           View and manage student information
         </p>
+
       </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+
+      {/* FILTER SECTION */}
+     
+      <div className="bg-white rounded-xl p-6 shadow-sm border">
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by name, roll number, or email..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
+
+          {/* SEARCH */}
+
+          <div className="relative md:col-span-2">
+
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+
+            <input
+              type="text"
+              placeholder="Search name, enrollment, email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+
           </div>
-          <div>
-            <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option>All Sections</option>
-              <option>CS-A</option>
-              <option>CS-B</option>
-            </select>
-          </div>
-          <div>
-            <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option>All Courses</option>
-              <option>Data Structures</option>
-              <option>Algorithms</option>
-            </select>
-          </div>
+
+
+          {/* SEMESTER FILTER */}
+
+          <select
+            value={semester}
+            onChange={(e) => setSemester(e.target.value)}
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+          >
+
+            <option value="">All Semesters</option>
+
+            {[1,2,3,4,5,6,7,8].map((sem) => (
+              <option key={sem} value={sem}>
+                Semester {sem}
+              </option>
+            ))}
+
+          </select>
+
+
+          {/* DIVISION FILTER */}
+
+          <select
+            value={division}
+            onChange={(e) => setDivision(e.target.value)}
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+          >
+
+            <option value="">All Divisions</option>
+
+            {["A","B","C","D","E","F","I","J","K","P","Q"].map((div) => (
+              <option key={div} value={div}>
+                Division {div}
+              </option>
+            ))}
+
+          </select>
+
         </div>
+
+
+        {/* RESET BUTTON */}
+
+        <div className="mt-4">
+
+          <button
+            onClick={resetFilters}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Reset Filters
+          </button>
+
+        </div>
+
       </div>
 
-      {/* Students Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Roll No
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Student Name
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Phone
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Section
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Attendance
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {students.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-gray-800 font-medium">
-                    {student.rollNo}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <img
-                        src={`https://ui-avatars.com/api/?name=${student.name}&background=random`}
-                        alt={student.name}
-                        className="w-8 h-8 rounded-full mr-3"
-                      />
-                      <span className="text-gray-800 font-medium">
-                        {student.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{student.email}</td>
-                  <td className="px-6 py-4 text-gray-600">{student.phone}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
-                      {student.section}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <span
-                        className={`font-medium ${
-                          student.attendance >= 85
-                            ? "text-green-600"
-                            : student.attendance >= 75
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {student.attendance}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex space-x-2">
-                      <button
-                        className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Send Email"
-                      >
-                        <Mail className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+
+      {/* STUDENT TABLE */}
+
+      <div className="bg-white rounded-xl shadow border overflow-hidden">
+
+        {loading ? (
+
+          <div className="p-8 text-center text-gray-500">
+            Loading students...
+          </div>
+
+        ) : filteredStudents.length === 0 ? (
+
+          <div className="p-8 text-center text-gray-500">
+            No students found
+          </div>
+
+        ) : (
+
+          <div className="overflow-x-auto">
+
+            <table className="w-full">
+
+              <thead className="bg-gray-50 border-b">
+
+                <tr>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Enrollment
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Student
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Email
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Phone
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Semester
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Division
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Batch
+                  </th>
+
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
+
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+              </thead>
+
+              <tbody className="divide-y">
+
+                {Array.isArray(filteredStudents) &&
+                  filteredStudents.map((student, index) => (
+
+                    <tr key={student._id || index} className="hover:bg-gray-50">
+
+                      <td className="px-6 py-4 font-medium">
+                        {student.enrollment}
+                      </td>
+
+                      <td className="px-6 py-4 flex items-center">
+
+                        <img
+                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}`}
+                          alt={student.name}
+                          className="w-8 h-8 rounded-full mr-3"
+                        />
+
+                        <span className="font-medium">
+                          {student.name}
+                        </span>
+
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {student.email}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {student.phone}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        Sem {student.semester}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {student.division}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {student.batch || "-"}
+                      </td>
+
+                      <td className="px-6 py-4">
+
+                        <div className="flex space-x-2">
+
+                          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                            <Eye size={16}/>
+                          </button>
+
+                          <button className="p-2 text-green-600 hover:bg-green-50 rounded">
+                            <Edit2 size={16}/>
+                          </button>
+
+                          <button className="p-2 text-purple-600 hover:bg-purple-50 rounded">
+                            <Mail size={16}/>
+                          </button>
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
       </div>
+
     </div>
+
   );
+
 };
 
 export default StudentManagement;

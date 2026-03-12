@@ -399,7 +399,7 @@ const Modal = ({
 
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
 
-  <div className="bg-white rounded-xl w-full max-w-lg p-6">
+  <div className="bg-white rounded-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto hide-scrollbar">
 
     <h2 className="text-xl font-bold mb-4">
       Create Assignment
