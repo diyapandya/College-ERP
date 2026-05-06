@@ -77,6 +77,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // ✅ Added from second schema (merged properly)
+    linkedStudentId: {
+      type: String,
+      trim: true,
+    },
+
     /* ---------------- OTP & Verification ---------------- */
 
     otp: {
@@ -94,60 +100,5 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-
-  password: {
-    type: String,
-    required: true,
-  },
-
-  role: {
-    type: String,
-    enum: ["student", "faculty", "parent", "admin"],
-    required: true,
-  },
-
-  // 🔹 New Field (for students)
-  enrollmentNo: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-
-  linkedStudentId: {
-    type: String,
-  },
-
-  linkedFacultyId: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-
-  // 🔹 OTP Verification
-  otp: {
-    type: String,
-  },
-
-  otpExpiry: {
-    type: Date,
-  },
-
-  isVerified: {
-    type: Boolean,
-    default: false,
-  },
-});
 
 module.exports = mongoose.model("User", userSchema);
