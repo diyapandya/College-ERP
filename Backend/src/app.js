@@ -12,8 +12,8 @@ app.use("/api", require("./routes"));
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, "../Frontend/dist")));
 // React routing support
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../Frontend/dist", "index.html"));
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../Frontend/dist/index.html"));
 });
 
 module.exports = app;
