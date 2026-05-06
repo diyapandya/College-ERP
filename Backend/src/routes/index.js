@@ -1,16 +1,16 @@
-const router = require('express').Router()
-const studentRoutes = require("./student.routes")
-const facultyRoutes = require("./faculty.routes")
+const router = require("express").Router();
+const studentRoutes = require("./student.routes");
+const facultyRoutes = require("./faculty.routes");
 const studentCollectionRoutes = require("./routes/studentCollection.routes");
-router.use('/auth', require('./auth.routes'))
-router.use('/faculty', facultyRoutes)
-router.use('/student', studentRoutes)
-router.use('/studentcollections', studentCollectionRoutes)
-router.use('/system', require('./system.routes'))
-router.use('/messages', require('./message.routes'))
-router.use('/dispute', require('./dispute.routes'))
-router.use('/notifications', require('./notification.routes'))
-router.use('/admin', require('./admin.routes'))
-router.use('/parent', require('./parent.routes'))
-router.use('/academic', require('./academic.routes'))
-module.exports = router
+router.use("/auth", require("./auth.routes"));
+router.use("/faculty", facultyRoutes);
+router.use("/student", studentRoutes);
+router.use("/studentcollections", studentCollectionRoutes);
+router.use("/system", require("./system.routes"));
+router.use("/messages", require("./message.routes"));
+router.use("/dispute", require("./dispute.routes"));
+router.use("/notifications", require("./notification.routes"));
+router.use("/admin", require("./admin.routes"));
+router.use("/parent", require("./parent.routes"));
+router.use("/academic", require("./academic.routes"));
+module.exports = router;

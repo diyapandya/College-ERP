@@ -44,7 +44,6 @@ exports.register = async (req, res) => {
     console.log("🔐 SIGNUP OTP (DEV MODE):", otp);
 
     await User.create({
-      name,
       email,
       password: hash,
       role,
@@ -55,12 +54,22 @@ exports.register = async (req, res) => {
       linkedFacultyId: role === "faculty" ? linkedFacultyId : undefined,
       otp,
       otpExpiry,
+
       isVerified: false,
     });
 
     res.status(201).json({
       message: "OTP sent for verification",
       otp, // remove in production
+
+      isVerified: false,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Signup successful. Please verify OTP.",
+      email: user.email,
+      otp, // return for testing (remove in production)
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

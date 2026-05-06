@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
 
     department: {
       type: String,
-       required: function () {
+      required: function () {
         return this.role === "student";
       },
       trim: true,
@@ -41,14 +41,14 @@ const userSchema = new mongoose.Schema(
       type: Number,
       min: 1,
       max: 8,
-       required: function () {
+      required: function () {
         return this.role === "student";
       },
     },
 
     division: {
       type: String,
-     required: function () {
+      required: function () {
         return this.role === "student";
       },
       trim: true,
@@ -92,7 +92,62 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+
+  password: {
+    type: String,
+    required: true,
+  },
+
+  role: {
+    type: String,
+    enum: ["student", "faculty", "parent", "admin"],
+    required: true,
+  },
+
+  // 🔹 New Field (for students)
+  enrollmentNo: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+
+  linkedStudentId: {
+    type: String,
+  },
+
+  linkedFacultyId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+
+  // 🔹 OTP Verification
+  otp: {
+    type: String,
+  },
+
+  otpExpiry: {
+    type: Date,
+  },
+
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 module.exports = mongoose.model("User", userSchema);
